@@ -1,0 +1,45 @@
+---
+/**
+ * An inline concept name with its color: a small square in the concept's hue
+ * before the text. The mapping is the site-wide palette (see tokens.css):
+ * package = violet, session = green, active member = cyan, reference member =
+ * amber, landing branch = rose. Use it where a concept is first defined, as in
+ * the Concepts table; the landing page's tree uses the same colors.
+ */
+import type { Hue } from "../lib/nav";
+
+interface Props {
+  kind: "package" | "session" | "active" | "reference" | "landing";
+}
+
+const HUES: Record<Props["kind"], Hue> = {
+  package: "violet",
+  session: "green",
+  active: "cyan",
+  reference: "amber",
+  landing: "rose",
+};
+
+const { kind } = Astro.props;
+---
+
+<span class="term" data-hue={HUES[kind]}><span class="chip" aria-hidden="true"></span><slot /></span>
+
+<style>
+  .term {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .chip {
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 2px;
+    background: var(--hue);
+  }
+</style>

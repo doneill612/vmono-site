@@ -5,12 +5,12 @@ description: Packages, sessions, members and landing branches, and how they lay 
 
 | Term | Meaning |
 | --- | --- |
-| Package | A definition under the package root (default `~/.vmono`): the members, a purpose, context, notes and a role per member. It has its own small git repo, and holds no worktrees. |
-| Session | One piece of work on a package: a directory with its own branch, its own git repo, and a worktree of every member. It is what a harness opens. A package has any number of them side by side. |
+| <Term kind="package">Package</Term> | A definition under the package root (default `~/.vmono`): the members, a purpose, context, notes and a role per member. It has its own small git repo, and holds no worktrees. |
+| <Term kind="session">Session</Term> | One piece of work on a package: a directory with its own branch, its own git repo, and a worktree of every member. It is what a harness opens. A package has any number of them side by side. |
 | Member | A source repo included in a package. Every session has a worktree of every member. |
-| Active member | Checked out on the session branch (default `vmono/<package>/<session>`). The agent may edit it and commit to it. |
-| Reference member | Checked out detached at a fixed ref under `_ref/`. Read-only context. |
-| Landing branch | The branch in a member's source repo that the session's work lands on when it is finished. Each member has its own, recorded in the session when it is created: by default the branch that member's source repo has checked out. |
+| <Term kind="active">Active member</Term> | Checked out on the session branch (default `vmono/<package>/<session>`). The agent may edit it and commit to it. |
+| <Term kind="reference">Reference member</Term> | Checked out detached at a fixed ref under `_ref/`. Read-only context. |
+| <Term kind="landing">Landing branch</Term> | The branch in a member's source repo that the session's work lands on when it is finished. Each member has its own, recorded in the session when it is created: by default the branch that member's source repo has checked out. |
 | Purpose / Context / Notes / Role | Free text that belongs to the package: what the work is, what to know, a dated log, and what each member contributes. Sessions share it; they have none of their own. |
 
 ## On disk

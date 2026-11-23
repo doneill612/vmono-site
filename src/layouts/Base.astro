@@ -9,10 +9,10 @@
  * `prefers-color-scheme` through CSS alone. Storage access is wrapped in
  * try/catch because it can throw in private windows or with site data blocked.
  */
-import "@fontsource/space-mono/400.css";
-import "@fontsource/space-mono/700.css";
+import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/global.css";
+import regularFont from "../assets/fonts/JuliaMono-Regular-subset.woff2?url";
 import { url } from "../lib/nav";
 
 interface Props {
@@ -37,6 +37,7 @@ const fullTitle = home ? title : `${title} | vmono`;
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0c0e" />
     <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+    <link rel="preload" href={regularFont} as="font" type="font/woff2" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="vmono" />
     <meta property="og:title" content={fullTitle} />
@@ -54,15 +55,25 @@ const fullTitle = home ? title : `${title} | vmono`;
     <slot />
     <script>
       /**
-       * Wrap every highlighted code block in `.code-block` and add a Copy
-       * button. A failed clipboard write (insecure context, denied
-       * permission) leaves the label unchanged rather than claiming success.
+       * Wrap every highlighted code block in `.code-block` with a header bar:
+       * the language label on the left, a copy button on the right. A failed
+       * clipboard write (insecure context, denied permission) leaves the label
+       * unchanged rather than claiming success.
        */
+      const LANG_LABELS: Record<string, string> = { sh: "shell", bash: "shell", shell: "shell", text: "text" };
+
       document.querySelectorAll<HTMLPreElement>("pre.astro-code").forEach((pre) => {
         const wrap = document.createElement("div");
         wrap.className = "code-block";
         pre.replaceWith(wrap);
-        wrap.append(pre);
+
+        const lang = pre.dataset.language ?? "";
+        const head = document.createElement("div");
+        head.className = "code-head";
+
+        const label = document.createElement("span");
+        label.className = "lang";
+        label.textContent = LANG_LABELS[lang] ?? lang;
 
         const btn = document.createElement("button");
         btn.type = "button";
@@ -80,7 +91,9 @@ const fullTitle = home ? title : `${title} | vmono`;
             }, 1500);
           } catch {}
         });
-        wrap.append(btn);
+
+        head.append(label, btn);
+        wrap.append(head, pre);
       });
     </script>
   </body>

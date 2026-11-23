@@ -1,0 +1,34 @@
+/*
+ * JuliaMono (SIL Open Font License 1.1, see src/assets/fonts/JuliaMono-LICENSE.txt),
+ * self-hosted. These are subsets of the upstream v0.63.2 Regular, Medium and
+ * Bold files, about 15 KB each: Basic Latin, Latin-1, general punctuation,
+ * arrows, box-drawing and geometric shapes, which covers every glyph the site
+ * uses (tree lines, arrows, the menu and theme glyphs). If a page starts using
+ * a character outside that set, the browser falls back to the next font in
+ * `--font-mono`; regenerate the subsets with `pyftsubset` to add it.
+ *
+ * Vite resolves the relative urls, hashes the files, and applies any `base`.
+ */
+@font-face {
+  font-family: "JuliaMono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/JuliaMono-Regular-subset.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JuliaMono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/JuliaMono-Medium-subset.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JuliaMono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/JuliaMono-Bold-subset.woff2") format("woff2");
+}

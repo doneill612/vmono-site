@@ -12,7 +12,7 @@
 :root {
   color-scheme: light;
 
-  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+  --font-mono: "JuliaMono", ui-monospace, SFMono-Regular, Menlo, Monaco,
     Consolas, "Liberation Mono", "Courier New", monospace;
 
   --text-2xs: 0.6875rem;
@@ -52,7 +52,26 @@
   --warning: #b45f06;
   --danger: #d70015;
   --overlay: rgba(0, 0, 0, 0.4);
+
+  /*
+   * Concept palette. Each color means one thing wherever it appears (landing
+   * tree, Concepts table, sidebar groups): violet = package, green = session,
+   * cyan = active member, amber = reference member, rose = landing branch.
+   * Light values are darkened to keep 4.5:1 text contrast on white.
+   */
+  --c-cyan: #0777a8;
+  --c-green: #12804a;
+  --c-violet: #6d4fd6;
+  --c-amber: #9a5a08;
+  --c-rose: #c2307a;
 }
+
+/* A `data-hue` ancestor sets `--hue`, which components tint themselves with. */
+[data-hue="cyan"] { --hue: var(--c-cyan); }
+[data-hue="green"] { --hue: var(--c-green); }
+[data-hue="violet"] { --hue: var(--c-violet); }
+[data-hue="amber"] { --hue: var(--c-amber); }
+[data-hue="rose"] { --hue: var(--c-rose); }
 
 @media (min-width: 640px) {
   :root {
@@ -76,6 +95,11 @@
     --warning: #ff9f0a;
     --danger: #ff453a;
     --overlay: rgba(0, 0, 0, 0.6);
+    --c-cyan: #5fd7ff;
+    --c-green: #5fe3a1;
+    --c-violet: #b39dff;
+    --c-amber: #ffb454;
+    --c-rose: #ff7ab6;
   }
 }
 
@@ -94,4 +118,9 @@
   --warning: #ff9f0a;
   --danger: #ff453a;
   --overlay: rgba(0, 0, 0, 0.6);
+  --c-cyan: #5fd7ff;
+  --c-green: #5fe3a1;
+  --c-violet: #b39dff;
+  --c-amber: #ffb454;
+  --c-rose: #ff7ab6;
 }

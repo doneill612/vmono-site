@@ -84,8 +84,8 @@ const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3)
   }
 
   a[aria-current="true"] {
-    color: var(--accent);
-    border-left-color: var(--accent);
+    color: var(--hue, var(--accent));
+    border-left-color: var(--hue, var(--accent));
   }
 </style>
 
