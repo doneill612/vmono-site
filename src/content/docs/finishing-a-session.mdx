@@ -1,9 +1,9 @@
 ---
 title: Finishing a session
-description: Land a session's commits on each member's branch in its source repo, locally.
+description: Land a session's commits on each member's branch in its source repo, locally, then push them when you choose.
 ---
 
-A session is done when its work has landed on a branch in each member's source repo. `vmono session finish` does that locally; it never pushes.
+A session is done when its work has landed on a branch in each member's source repo. `vmono session finish` does that locally; it never pushes. Pushing is a separate step you ask for, [below](#pushing).
 
 1. For each active member, the session's own commits (on the session branch, but on neither the member's base nor its landing branch) are rebased onto the landing branch, inside the session's worktree.
 2. The landing branch in the source repo then moves to the result: fast-forwarded when it is checked out in a clean worktree, updated in place when nothing has it checked out, and created when it does not exist yet.
@@ -22,7 +22,19 @@ Nothing moves unless every member can land. Uncommitted or untracked files, a la
 
 A finished session is not a removed one. It stays in the package's session list, dimmed and sorted below the others, with its worktrees and branch, until you remove it (`ctrl+d` in the TUI, `vmono session rm`, or `finish --close` to do both at once). Its state is derived rather than stored: any new commit or uncommitted edit makes it `in-progress` again, relaunching it changes nothing, and finishing again lands only the new commits. `vmono session ls`, `status` and `show --json` report the state, and `status` shows what is left to land in each member.
 
-The vmono skill teaches the agent to do this when you say the work is done (in Claude Code, `/vmono:finish` says it for you): commit in every member, run `vmono session finish`, resolve a conflict if one stops it, and report what landed where. The adapters ask for permission first, and the agent never passes `--close` or pushes.
+The vmono skill teaches the agent to do this when you say the work is done (in Claude Code, `/vmono:finish` says it for you): commit in every member, run `vmono session finish`, resolve a conflict if one stops it, and report what landed where. The adapters ask for permission first, and the agent never passes `--close` or pushes; pushing is yours, from the TUI or `vmono session push`.
+
+## Pushing
+
+Landing leaves each member's landing branch ahead of its remote. `vmono session push [pkg/session] [--member NAME]... [--dry-run] [--json]`, or `P` on the session (or `p` on a member) in the TUI, publishes them. It is only for a finished session: one that was never finished, or has new commits or edits since, is refused with exit code `2`, so nothing unlanded or half-committed is pushed. In the TUI a session that is not finished gets a dialog saying so, with `F` to finish it right there, unless uncommitted work or a rebase in progress stops it; then the dialog lists what, and you commit or resolve it first.
+
+Only each member's landing branch is pushed, from its source repo, and never the session's own branch. A branch that tracks a remote branch goes there. A branch with no upstream goes to a branch of the same name on `origin` (or on the repo's only remote) and is set to track it, which is how a landing branch that finish created ends up published. A repo with several remotes and no `origin` blocks that member until you give the branch an upstream with `git branch --set-upstream-to`.
+
+Nothing is forced. If the remote branch has commits the landing branch lacks, the member is blocked, or git refuses the push, and you pull or rebase in the member's source repo and push again. Whether a branch is behind is judged from the last fetch (`f` in the TUI, or `git fetch` in the source repo), so the dialog can be a fetch out of date, and git has the final say. Members are independent: one that is blocked or refused does not stop the others, and the command exits `2` when any is blocked (`1` when git refused one). Members whose remote already has everything are skipped, so pushing twice is safe. `--dry-run` prints the plan and pushes nothing.
+
+The TUI shows what is left to push. A member's preview says where its landing branch goes and how many commits the remote lacks, and a finished session's preview sums them.
+
+Push before you remove the session: `finish --close` and `vmono session rm` take the session with them, after which the landing branches are plain branches in the source repos and you push them by hand. Authentication works as for fetching, and pushes never prompt; see [Authentication](/docs/authentication).
 
 ## Packages from before sessions
 

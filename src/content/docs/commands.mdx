@@ -15,6 +15,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono session into [pkg/session] [--all B] [--member NAME=B]...` | Show each member's landing branch, or change them |
 | `vmono session ls [pkg]` | List a package's sessions and whether each is finished |
 | `vmono session finish [pkg/session] [--into [MEMBER=]B]... [--close] [--dry-run]` | Land the session's commits on each member's branch in its source repo. Nothing is pushed; see [Finishing a session](/docs/finishing-a-session) |
+| `vmono session push [pkg/session] [--member NAME]... [--dry-run] [--json]` | Push a finished session's landing branches to their remotes, never forced; see [Pushing](/docs/finishing-a-session#pushing) |
 | `vmono session rm <pkg>/<session> [--force] [--delete-branches]` | Remove a session; the package and its other sessions stay |
 | `vmono add [pkg] <repo> [--ref] [--role R]` | Add a member to the package, and so to every session (a known repo name or any path) |
 | `vmono rm [pkg] <member> [--force] [--delete-branch]` | Remove a member from every session |
@@ -38,7 +39,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | --- | --- |
 | `0` | Success |
 | `1` | Error |
-| `2` | Refused because work would be lost (or, for `session finish`, because a member cannot land yet) |
+| `2` | Refused because work would be lost (or, for `session finish`, because a member cannot land yet; or, for `session push`, because the session is not finished or a member is blocked) |
 | `3` | Not found |
 
 When a harness started with `vmono open` exits, vmono exits with its status.
