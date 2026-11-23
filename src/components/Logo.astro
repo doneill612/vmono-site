@@ -1,9 +1,10 @@
 ---
 /**
- * The vmono mark: a frame (the session directory) holding three bars (the
- * member worktrees). The frame and first bar follow `currentColor`, so the
- * mark reads on both the light and dark backgrounds; the cyan and gray bars
- * are fixed. Keep in sync with `public/favicon.svg`.
+ * The vmono mark: a squircle frame (the session directory) around three
+ * branches (the member worktrees) that merge into one cyan dot, the session
+ * they land in. The frame and the first branch follow `currentColor`, so the
+ * mark reads on both the light and dark backgrounds; the cyan and gray
+ * strokes are fixed. Keep in sync with `public/favicon.svg`.
  */
 interface Props {
   size?: number | string;
@@ -21,12 +22,11 @@ const { size = 24 } = Astro.props;
   aria-hidden="true"
   focusable="false"
 >
-  <path
-    fill-rule="evenodd"
-    clip-rule="evenodd"
-    d="M416 416H96V96H416V416ZM384 128H128V384H384V128Z"
-    fill="currentColor"></path>
-  <rect x="160" y="160" width="48" height="192" fill="currentColor"></rect>
-  <rect x="232" y="160" width="48" height="192" fill="#5fd7ff"></rect>
-  <rect x="304" y="160" width="48" height="192" fill="#5a5858"></rect>
+  <rect x="108" y="108" width="296" height="296" rx="104" stroke="currentColor" stroke-width="28"></rect>
+  <g stroke-width="32" stroke-linecap="round">
+    <path d="M171.8 165.5C171.8 251.3 256 235.7 256 346.5" stroke="currentColor"></path>
+    <path d="M340.2 165.5C340.2 251.3 256 235.7 256 346.5" stroke="#5a5858"></path>
+    <path d="M256 165.5V346.5" stroke="#5fd7ff"></path>
+  </g>
+  <circle cx="256" cy="346.5" r="24" fill="#5fd7ff"></circle>
 </svg>
