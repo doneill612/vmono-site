@@ -1,0 +1,162 @@
+---
+/**
+ * Layout for every documentation page: header, sidebar, the article, the
+ * "On this page" rail and a previous/next pager.
+ *
+ * Page content arrives as the default slot (already rendered MDX) and is
+ * styled by the global `.prose` rules. The article carries
+ * `data-pagefind-body` so only docs content is indexed for search. A small
+ * script adds a copy-link `#` button to each h2/h3, shown on hover.
+ */
+import type { MarkdownHeading } from "astro";
+import Base from "./Base.astro";
+import Header from "../components/Header.astro";
+import Sidebar from "../components/Sidebar.astro";
+import Toc from "../components/Toc.astro";
+import Footer from "../components/Footer.astro";
+import { getNav, neighbors } from "../lib/nav";
+
+interface Props {
+  /** Docs entry id, e.g. `install`; `index` for the docs home. */
+  id: string;
+  title: string;
+  description: string;
+  headings: MarkdownHeading[];
+}
+
+const { id, title, description, headings } = Astro.props;
+const nav = await getNav();
+const { prev, next } = neighbors(nav, id);
+---
+
+<Base title={title} description={description}>
+  <Header docs />
+  <div class="shell">
+    <Sidebar nav={nav} current={id} />
+    <main id="content" class="main">
+      <article class="prose" data-pagefind-body>
+        <h1>{title}</h1>
+        <p class="lead">{description}</p>
+        <slot />
+      </article>
+      {
+        (prev || next) && (
+          <nav class="pager" aria-label="Pagination">
+            {prev ? (
+              <a class="prev" href={prev.href}>
+                <span class="dir">← Previous</span>
+                <span class="name">{prev.title}</span>
+              </a>
+            ) : (
+              <span />
+            )}
+            {next && (
+              <a class="next" href={next.href}>
+                <span class="dir">Next →</span>
+                <span class="name">{next.title}</span>
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </main>
+    <Toc headings={headings} />
+  </div>
+  <Footer />
+</Base>
+
+<style>
+  .shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  @media (min-width: 1024px) {
+    .shell {
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      column-gap: 3rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .shell {
+      grid-template-columns: var(--sidebar-w) minmax(0, var(--content-w)) var(--toc-w);
+      justify-content: center;
+      column-gap: 3rem;
+    }
+  }
+
+  .main {
+    min-width: 0;
+    padding: 2rem 0 0;
+  }
+
+  .lead {
+    margin: 0 0 2rem;
+    font-size: var(--text-lg);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 3.5rem;
+  }
+
+  .pager a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+
+  .pager a:hover {
+    border-color: var(--accent);
+  }
+
+  .pager .next {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  .dir {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+  }
+
+  .name {
+    color: var(--accent);
+  }
+</style>
+
+<script>
+  /**
+   * Add a "#" copy-link button to each h2/h3 in the article. Copies the full
+   * URL with the heading's fragment; a failed write is silently ignored.
+   */
+  document.querySelectorAll<HTMLElement>(".prose h2[id], .prose h3[id]").forEach((h) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "heading-anchor";
+    btn.textContent = "#";
+    btn.setAttribute("aria-label", `Copy link to ${h.textContent}`);
+    btn.addEventListener("click", async () => {
+      const link = `${location.origin}${location.pathname}#${h.id}`;
+      try {
+        await navigator.clipboard.writeText(link);
+        history.replaceState(null, "", `#${h.id}`);
+        btn.dataset.copied = "";
+        setTimeout(() => delete btn.dataset.copied, 1500);
+      } catch {}
+    });
+    h.prepend(btn);
+  });
+</script>

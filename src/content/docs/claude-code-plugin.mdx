@@ -1,0 +1,24 @@
+---
+title: The Claude Code plugin
+description: What vmono writes into each session for Claude Code, a skill, a hook and three commands.
+---
+
+For Claude Code, vmono writes a plugin into every session at `.claude/skills/vmono/`. It is a skills-directory plugin: Claude Code loads a folder there that holds a `.claude-plugin/plugin.json` in place, with no marketplace and no install step, once you have trusted the session folder. It is rebuilt from the vmono binary on every launch and sync, so it never drifts from the version you run, and it is not meant to be edited.
+
+| Part | Does |
+| --- | --- |
+| `SKILL.md` (`/vmono`) | The skill every harness gets: how to recognize a session, read the package, and write back to it |
+| SessionStart hook | Runs `vmono hook session-start` when a conversation starts, resumes, is cleared, forked or compacted, and adds the session's live state to the context: each member's branch, uncommitted files, and commits left to land |
+| `/vmono:status` | Summarizes that state on request, including anything that would block finishing |
+| `/vmono:note [text]` | Records a package note from your text; with none, proposes one from the conversation and asks first |
+| `/vmono:finish` | Lands the session: commit in every member, `vmono session finish`, resolve a conflict if one stops it, report what landed. Claude Code still asks for permission to run `vmono session finish` |
+
+The hook runs the bare command `vmono`, so `vmono` must be on `PATH` for the harness, as the skill's own commands already assume. It prints nothing outside a session and never fails a start.
+
+## If plugins are unavailable
+
+If your organization blocks skills-directory plugins, or your Claude Code predates them, `/vmono` still loads as an ordinary project skill and only the hook and the three commands are missing. To turn the plugin off for one session, set `"vmono@skills-dir": false` under `enabledPlugins` in that session's `.claude/settings.local.json`, or run `claude plugin disable vmono@skills-dir`.
+
+## Other harnesses
+
+The other harnesses have no plugin strategy yet, so they get the same `SKILL.md` on its own, with the guidance behind the three commands (checking status, proposing a note before writing it, finishing) in it: OpenCode under `.opencode/skills/vmono/`, and Codex and Pi under `.agents/skills/vmono/`, which both scan from the session root. They do not get the live state at the start of a conversation; the skill tells the agent to run `vmono show --json` and `vmono status --json` instead.

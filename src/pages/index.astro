@@ -1,0 +1,212 @@
+---
+/**
+ * Landing page: the mark, a one-line pitch, the install command in tabs, a
+ * screenshot of the TUI, and four short feature rows. Everything past the
+ * hero links into /docs. Copy is condensed from the vmono README.
+ */
+import { Code } from "astro:components";
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Logo from "../components/Logo.astro";
+import CodeTabs from "../components/CodeTabs.astro";
+import { REPO_URL, url } from "../lib/nav";
+
+const themes = { light: "github-light", dark: "github-dark-dimmed" } as const;
+
+const unix = "curl -fsSL https://github.com/doneill612/vmono/releases/latest/download/install.sh | sh";
+const windows = "irm https://github.com/doneill612/vmono/releases/latest/download/install.ps1 | iex";
+
+const features = [
+  {
+    title: "Worktrees, not copies",
+    body: "Members are git worktrees of repos already on your machine: no copies, no re-clones, shared object storage.",
+  },
+  {
+    title: "Define once, session per task",
+    body: "A package is a set of repos with a purpose. More work on the same repos is a new session with its own branch, so nothing is set up twice.",
+  },
+  {
+    title: "Context your agent reads",
+    body: "The purpose, notes and each repo's role are written once and rendered into every session's AGENTS.md and CLAUDE.md.",
+  },
+  {
+    title: "Works with your harness",
+    body: "Claude Code, OpenCode, Codex and Pi work out of the box. A bundled skill teaches the agent to read the package and write back only what future sessions need.",
+  },
+];
+---
+
+<Base
+  home
+  title="vmono: many repos, one workspace for your coding agent"
+  description="vmono defines a set of git repos once and gives each piece of work its own session: a branch and a worktree of every repo, ready for your coding agent."
+>
+  <Header />
+  <main id="content">
+    <section class="hero">
+      <div class="mark"><Logo size={72} /></div>
+      <h1>Many repos.<br />One workspace for your coding agent.</h1>
+      <p class="sub">
+        Define a set of repos once. Start a session for each piece of work: a branch and a git worktree of every
+        repo, in one directory your harness opens.
+      </p>
+
+      <div class="install">
+        <CodeTabs tabs={[{ id: "unix", label: "macOS / Linux" }, { id: "windows", label: "Windows (PowerShell)" }]}>
+          <Fragment slot="unix">
+            <Code code={unix} lang="sh" themes={themes} defaultColor={false} />
+          </Fragment>
+          <Fragment slot="windows">
+            <Code code={windows} lang="powershell" themes={themes} defaultColor={false} />
+          </Fragment>
+        </CodeTabs>
+      </div>
+
+      <div class="actions">
+        <a class="btn primary" href={url("/docs")}>Read the docs</a>
+        <a class="btn" href={url("/docs/quick-start")}>Quick start</a>
+        <a class="btn" href={REPO_URL} rel="noopener">GitHub</a>
+      </div>
+    </section>
+
+    <section class="shot" aria-label="The vmono TUI">
+      <img
+        src={url("/vmono-ex.png")}
+        width="3456"
+        height="1842"
+        alt="The vmono TUI showing the packages view: a list of packages beside a preview of the selected one"
+        decoding="async"
+      />
+    </section>
+
+    <section class="features" aria-label="Features">
+      {
+        features.map((f) => (
+          <div class="row">
+            <h2>{f.title}</h2>
+            <p>{f.body}</p>
+          </div>
+        ))
+      }
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  main {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .hero {
+    padding: 4rem 0 3rem;
+  }
+
+  .mark {
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  h1 {
+    margin: 0 0 1rem;
+    max-width: 22ch;
+    font-size: clamp(var(--text-3xl), 6vw, var(--text-5xl));
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .sub {
+    max-width: 52ch;
+    margin: 0 0 2rem;
+    font-size: var(--text-lg);
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .install {
+    max-width: 44rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    height: 2.5rem;
+    padding: 0 1.1rem;
+    font-size: var(--text-sm);
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .btn:hover {
+    border-color: var(--text-muted);
+  }
+
+  .btn.primary {
+    color: var(--accent-text);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-color: var(--accent-bg);
+  }
+
+  .btn.primary:hover {
+    filter: brightness(0.95);
+  }
+
+  .shot {
+    margin: 0 0 4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #000;
+  }
+
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .features {
+    border-top: 1px solid var(--border-muted);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border-muted);
+  }
+
+  @media (min-width: 768px) {
+    .row {
+      grid-template-columns: 18rem 1fr;
+    }
+  }
+
+  .row h2 {
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .row p {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+</style>

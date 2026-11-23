@@ -1,0 +1,32 @@
+---
+/**
+ * The vmono mark: a frame (the session directory) holding three bars (the
+ * member worktrees). The frame and first bar follow `currentColor`, so the
+ * mark reads on both the light and dark backgrounds; the cyan and gray bars
+ * are fixed. Keep in sync with `public/favicon.svg`.
+ */
+interface Props {
+  size?: number | string;
+}
+
+const { size = 24 } = Astro.props;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 512 512"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  focusable="false"
+>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M416 416H96V96H416V416ZM384 128H128V384H384V128Z"
+    fill="currentColor"></path>
+  <rect x="160" y="160" width="48" height="192" fill="currentColor"></rect>
+  <rect x="232" y="160" width="48" height="192" fill="#5fd7ff"></rect>
+  <rect x="304" y="160" width="48" height="192" fill="#5a5858"></rect>
+</svg>

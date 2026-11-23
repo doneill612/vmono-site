@@ -1,0 +1,188 @@
+---
+/**
+ * Left navigation for docs pages: titled groups of links. The current page
+ * is marked with a filled row and a short cyan bar on its left edge.
+ *
+ * At 1024px and wider it is a sticky column. Below that it becomes an
+ * off-canvas drawer controlled by `body[data-sidebar="open"]`; the header's
+ * `[data-sidebar-toggle]` button opens it, and Escape, the backdrop or
+ * following a link closes it. While open, the page behind is scroll-locked.
+ */
+import type { NavGroup } from "../lib/nav";
+
+interface Props {
+  nav: NavGroup[];
+  /** Id of the page being rendered, used to mark the current link. */
+  current: string;
+}
+
+const { nav, current } = Astro.props;
+---
+
+<div class="backdrop" data-sidebar-close></div>
+<aside class="sidebar" id="sidebar" aria-label="Documentation">
+  <nav>
+    {
+      nav.map((group) => (
+        <div class="group">
+          {group.title && <p class="group-title">{group.title}</p>}
+          <ul>
+            {group.items.map((item) => (
+              <li>
+                <a href={item.href} aria-current={item.id === current ? "page" : undefined}>
+                  {item.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </nav>
+</aside>
+
+<style>
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 60;
+    width: min(18rem, 86vw);
+    padding: 1.25rem 1rem 2rem;
+    overflow-y: auto;
+    background: var(--bg);
+    border-right: 1px solid var(--border-muted);
+    translate: -100% 0;
+    visibility: hidden;
+    transition:
+      translate 0.18s ease,
+      visibility 0s linear 0.18s;
+  }
+
+  :global(body[data-sidebar="open"]) .sidebar {
+    translate: 0 0;
+    visibility: visible;
+    transition: translate 0.18s ease;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--overlay);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+
+  :global(body[data-sidebar="open"]) .backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .backdrop {
+      transition: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .sidebar {
+      position: sticky;
+      inset: auto;
+      top: var(--header-h);
+      z-index: auto;
+      width: auto;
+      height: calc(100vh - var(--header-h));
+      padding: 2rem 1rem 3rem 0;
+      border-right: 0;
+      translate: none;
+      visibility: visible;
+    }
+
+    .backdrop {
+      display: none;
+    }
+  }
+
+  .group + .group {
+    margin-top: 1.75rem;
+  }
+
+  .group-title {
+    margin: 0 0 0.5rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    position: relative;
+    display: block;
+    padding: 0.35rem 0.75rem;
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+  }
+
+  a:hover {
+    color: var(--text);
+    background: var(--bg-surface);
+  }
+
+  a[aria-current="page"] {
+    color: var(--text);
+    font-weight: 500;
+    background: var(--bg-surface);
+  }
+
+  /* A short accent bar, echoing the bars in the vmono mark. */
+  a[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 3px;
+    border-radius: 1px;
+    background: var(--accent-bg);
+  }
+</style>
+
+<script>
+  const body = document.body;
+
+  function setOpen(open: boolean) {
+    if (open) {
+      body.dataset.sidebar = "open";
+      body.dataset.scrollLock = "";
+    } else {
+      delete body.dataset.sidebar;
+      delete body.dataset.scrollLock;
+    }
+    document
+      .querySelectorAll("[data-sidebar-toggle]")
+      .forEach((btn) => btn.setAttribute("aria-expanded", String(open)));
+  }
+
+  document
+    .querySelectorAll("[data-sidebar-toggle]")
+    .forEach((btn) => btn.addEventListener("click", () => setOpen(body.dataset.sidebar !== "open")));
+  document.querySelectorAll("[data-sidebar-close]").forEach((el) => el.addEventListener("click", () => setOpen(false)));
+  document.querySelectorAll("#sidebar a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && body.dataset.sidebar === "open") setOpen(false);
+  });
+
+  document.querySelector('#sidebar a[aria-current="page"]')?.scrollIntoView({ block: "nearest" });
+</script>

@@ -1,0 +1,30 @@
+---
+title: Quick start
+description: Define a package, start a session, and open it in your coding harness.
+---
+
+## With the TUI
+
+```sh
+vmono                      # opens the TUI; first run walks you through setup
+```
+
+## From the command line
+
+```sh
+vmono init --source-root ~/source
+vmono new project --active member-a,member-b --ref member-c \
+    --purpose-file purpose.md --session token-refresh
+vmono open project/token-refresh   # launches your default harness at the session root
+cd "$(vmono path project/token-refresh)" && claude    # same thing, by hand
+
+vmono session new project spike    # more work on the same repos: a new session
+```
+
+Add `eval "$(vmono shell-init zsh)"` (or `bash`, `fish`, `pwsh`) to your shell rc for a `vcd <pkg>[/session]` function.
+
+## What just happened
+
+`vmono new` defined a package called `project` with two active members and one reference member, and started its first session, `token-refresh`. That session is a directory with a git worktree of every member on a new branch; `vmono open` launched your default harness inside it. `vmono session new` started a second session on the same repos without setting up the members again.
+
+See [Concepts](/docs/concepts) for the terms and the on-disk layout, and [Commands](/docs/commands) for every flag.

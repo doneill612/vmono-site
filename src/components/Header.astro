@@ -1,0 +1,127 @@
+---
+/**
+ * Sticky top bar: the mark and wordmark, primary links, search and the theme
+ * toggle. On docs pages (`docs` set) it also shows a menu button, visible
+ * below 1024px, that opens the sidebar drawer; Sidebar.astro owns that
+ * behavior and finds the button by `data-sidebar-toggle`.
+ */
+import Logo from "./Logo.astro";
+import Search from "./Search.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+import { REPO_URL, url } from "../lib/nav";
+
+interface Props {
+  docs?: boolean;
+}
+
+const { docs = false } = Astro.props;
+---
+
+<header class="header">
+  <div class="inner">
+    {
+      docs && (
+        <button type="button" class="menu-btn" data-sidebar-toggle aria-label="Open navigation" aria-expanded="false">
+          <span aria-hidden="true">≡</span>
+        </button>
+      )
+    }
+    <a class="brand" href={url("/")} aria-label="vmono home">
+      <Logo size={26} />
+      <span class="word">vmono</span>
+    </a>
+    <nav class="links" aria-label="Primary">
+      <a href={url("/docs")}>Docs</a>
+      <a href={REPO_URL} rel="noopener">GitHub</a>
+    </nav>
+    <div class="tools">
+      <Search />
+      <ThemeToggle />
+    </div>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    height: var(--header-h);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-muted);
+  }
+
+  .inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+    max-width: var(--page-max);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .word {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .links {
+    display: none;
+    gap: 1.25rem;
+    margin-left: 1rem;
+    font-size: var(--text-sm);
+  }
+
+  .links a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .links a:hover {
+    color: var(--text);
+  }
+
+  @media (min-width: 640px) {
+    .links {
+      display: flex;
+    }
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .menu-btn {
+    height: 2rem;
+    padding: 0 0.4rem;
+    margin-left: -0.4rem;
+    color: var(--text-muted);
+    background: none;
+    border: 0;
+    font-size: var(--text-md);
+  }
+
+  .menu-btn:hover {
+    color: var(--text);
+  }
+
+  @media (min-width: 1024px) {
+    .menu-btn {
+      display: none;
+    }
+  }
+</style>

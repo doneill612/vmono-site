@@ -1,0 +1,85 @@
+---
+/**
+ * Three-way theme switch: system, light, dark. Clicking cycles through them.
+ *
+ * "system" removes the stored choice and the `data-theme` attribute so CSS
+ * follows `prefers-color-scheme`; "light" and "dark" store the choice in
+ * localStorage under `vmono-theme` and force it with `data-theme`. The
+ * pre-paint script in Base.astro applies the stored choice on load. All
+ * storage access is guarded, since it can throw in private windows.
+ */
+---
+
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Theme: system">
+  <span class="glyph" aria-hidden="true">◐</span>
+  <span class="label">system</span>
+</button>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2rem;
+    padding: 0 0.6rem;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+  }
+
+  .theme-toggle:hover {
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  .glyph {
+    font-size: var(--text-md);
+    line-height: 1;
+  }
+
+  @media (max-width: 639px) {
+    .label {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const MODES = ["system", "light", "dark"] as const;
+  type Mode = (typeof MODES)[number];
+  const GLYPHS: Record<Mode, string> = { system: "◐", light: "○", dark: "●" };
+
+  /** The mode currently in effect: the stored choice, else system. */
+  function current(): Mode {
+    const attr = document.documentElement.dataset.theme;
+    return attr === "light" || attr === "dark" ? attr : "system";
+  }
+
+  /** Apply a mode to <html>, persist it, and refresh every toggle's label. */
+  function apply(mode: Mode) {
+    if (mode === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = mode;
+    try {
+      if (mode === "system") localStorage.removeItem("vmono-theme");
+      else localStorage.setItem("vmono-theme", mode);
+    } catch {}
+    render(mode);
+  }
+
+  function render(mode: Mode) {
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((btn) => {
+      btn.setAttribute("aria-label", `Theme: ${mode}. Click to change.`);
+      btn.querySelector(".glyph")!.textContent = GLYPHS[mode];
+      btn.querySelector(".label")!.textContent = mode;
+    });
+  }
+
+  render(current());
+  document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      apply(MODES[(MODES.indexOf(current()) + 1) % MODES.length]);
+    });
+  });
+</script>

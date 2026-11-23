@@ -1,0 +1,122 @@
+---
+/**
+ * "On this page" table of contents for the right rail (1280px and wider).
+ *
+ * Built from the `headings` Astro returns when rendering an entry, keeping
+ * levels 2 and 3. A small IntersectionObserver marks the heading nearest the
+ * top of the viewport as current.
+ */
+import type { MarkdownHeading } from "astro";
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{
+  items.length > 1 && (
+    <nav class="toc" aria-label="On this page">
+      <p class="title">On this page</p>
+      <ul>
+        {items.map((h) => (
+          <li class={h.depth === 3 ? "sub" : undefined}>
+            <a href={`#${h.slug}`} data-toc-link>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    display: none;
+  }
+
+  @media (min-width: 1280px) {
+    .toc {
+      display: block;
+      position: sticky;
+      top: var(--header-h);
+      max-height: calc(100vh - var(--header-h));
+      padding: 2rem 0 3rem 1rem;
+      overflow-y: auto;
+    }
+  }
+
+  .title {
+    margin: 0 0 0.75rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--border-muted);
+  }
+
+  a {
+    display: block;
+    padding: 0.2rem 0 0.2rem 0.9rem;
+    margin-left: -1px;
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-left: 1px solid transparent;
+  }
+
+  .sub a {
+    padding-left: 1.7rem;
+  }
+
+  a:hover {
+    color: var(--text);
+  }
+
+  a[aria-current="true"] {
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+</style>
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]")];
+  const targets = links
+    .map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))))
+    .filter((el): el is HTMLElement => el !== null);
+
+  if (links.length && "IntersectionObserver" in window) {
+    const visible = new Set<string>();
+
+    /** Mark the first visible heading (document order) as current. */
+    function update() {
+      const first = targets.find((t) => visible.has(t.id));
+      if (!first) return;
+      links.forEach((a) =>
+        a.setAttribute("aria-current", String(decodeURIComponent(a.hash.slice(1)) === first.id)),
+      );
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        }
+        update();
+      },
+      { rootMargin: "-64px 0px -70% 0px" },
+    );
+    targets.forEach((t) => observer.observe(t));
+  }
+</script>

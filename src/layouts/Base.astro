@@ -1,0 +1,87 @@
+---
+/**
+ * Document shell shared by every page: <head> metadata, self-hosted fonts,
+ * global styles, and the theme bootstrap.
+ *
+ * The inline script in <head> runs before first paint and applies a
+ * previously chosen theme (`light` or `dark`) from localStorage, so a forced
+ * theme never flashes the system one. With no stored choice the page follows
+ * `prefers-color-scheme` through CSS alone. Storage access is wrapped in
+ * try/catch because it can throw in private windows or with site data blocked.
+ */
+import "@fontsource/space-mono/400.css";
+import "@fontsource/space-mono/700.css";
+import "../styles/tokens.css";
+import "../styles/global.css";
+import { url } from "../lib/nav";
+
+interface Props {
+  /** Page title; the site name is appended unless `home` is set. */
+  title: string;
+  description: string;
+  home?: boolean;
+}
+
+const { title, description, home = false } = Astro.props;
+const fullTitle = home ? title : `${title} | vmono`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0c0e" />
+    <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="vmono" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      try {
+        var t = localStorage.getItem("vmono-theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <slot />
+    <script>
+      /**
+       * Wrap every highlighted code block in `.code-block` and add a Copy
+       * button. A failed clipboard write (insecure context, denied
+       * permission) leaves the label unchanged rather than claiming success.
+       */
+      document.querySelectorAll<HTMLPreElement>("pre.astro-code").forEach((pre) => {
+        const wrap = document.createElement("div");
+        wrap.className = "code-block";
+        pre.replaceWith(wrap);
+        wrap.append(pre);
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy-btn";
+        btn.textContent = "copy";
+        btn.setAttribute("aria-label", "Copy code");
+        btn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(pre.textContent ?? "");
+            btn.dataset.copied = "";
+            btn.textContent = "copied";
+            setTimeout(() => {
+              delete btn.dataset.copied;
+              btn.textContent = "copy";
+            }, 1500);
+          } catch {}
+        });
+        wrap.append(btn);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,165 @@
+---
+/**
+ * Site search: a button plus a modal <dialog> hosting Pagefind's prebuilt UI.
+ *
+ * The index is produced by `pagefind --site dist` after the Astro build, so
+ * search only works on a built site (`npm run build && npm run preview`); under
+ * `npm run dev` the dialog says so instead of failing. Pagefind's script and
+ * stylesheet are loaded lazily the first time the dialog opens, keeping them
+ * off the critical path. Opens with the `/` key or Ctrl/Cmd+K.
+ */
+import { url } from "../lib/nav";
+
+const bundle = url("/pagefind/");
+---
+
+<button type="button" class="search-btn" data-search-open aria-label="Search docs">
+  <span class="text">Search</span>
+  <kbd>/</kbd>
+</button>
+
+<dialog class="search-dialog" data-search-dialog data-bundle={bundle} aria-label="Search docs">
+  <div class="search-box">
+    <div data-search-mount></div>
+    <p class="search-note" data-search-note hidden></p>
+  </div>
+</dialog>
+
+<style>
+  .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 2rem;
+    padding: 0 0.5rem 0 0.75rem;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .search-btn:hover {
+    color: var(--text);
+  }
+
+  @media (min-width: 900px) {
+    .search-btn {
+      min-width: 12rem;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .search-btn .text {
+      display: none;
+    }
+    .search-btn {
+      padding: 0 0.5rem;
+    }
+  }
+
+  .search-dialog {
+    width: min(40rem, calc(100vw - 2rem));
+    max-height: min(36rem, calc(100vh - 6rem));
+    margin: 4rem auto auto;
+    padding: 0;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.35);
+    overflow: hidden;
+  }
+
+  .search-dialog::backdrop {
+    background: var(--overlay);
+  }
+
+  .search-box {
+    max-height: inherit;
+    padding: 1rem;
+    overflow-y: auto;
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: var(--accent);
+    --pagefind-ui-text: var(--text);
+    --pagefind-ui-background: var(--bg-elevated);
+    --pagefind-ui-border: var(--border);
+    --pagefind-ui-tag: var(--bg-surface);
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 8px;
+    --pagefind-ui-font: var(--font-mono);
+  }
+
+  .search-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("[data-search-dialog]");
+  const mount = document.querySelector<HTMLElement>("[data-search-mount]");
+  const note = document.querySelector<HTMLElement>("[data-search-note]");
+  let loading: Promise<void> | null = null;
+
+  /** Inject Pagefind's script and stylesheet once and mount its UI. */
+  function load(bundle: string): Promise<void> {
+    if (loading) return loading;
+    loading = new Promise<void>((resolve, reject) => {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = `${bundle}pagefind-ui.css`;
+      document.head.append(css);
+
+      const script = document.createElement("script");
+      script.src = `${bundle}pagefind-ui.js`;
+      script.onload = () => {
+        // @ts-expect-error PagefindUI is a global defined by pagefind-ui.js
+        new PagefindUI({
+          element: mount,
+          showImages: false,
+          showSubResults: true,
+          autofocus: true,
+          translations: { placeholder: "Search the docs" },
+        });
+        resolve();
+      };
+      script.onerror = () => reject(new Error("pagefind not found"));
+      document.head.append(script);
+    });
+    return loading;
+  }
+
+  /** Open the dialog, loading the search UI on first use. */
+  async function open() {
+    if (!dialog || dialog.open) return;
+    dialog.showModal();
+    try {
+      await load(dialog.dataset.bundle!);
+    } catch {
+      loading = null;
+      if (note) {
+        note.hidden = false;
+        note.textContent =
+          "Search index not found. It is built with `npm run build`; it is not available in dev.";
+      }
+    }
+  }
+
+  document.querySelectorAll("[data-search-open]").forEach((el) => el.addEventListener("click", open));
+
+  dialog?.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const target = e.target as HTMLElement | null;
+    const typing = target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+    if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing)) {
+      e.preventDefault();
+      open();
+    }
+  });
+</script>

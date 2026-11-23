@@ -1,0 +1,145 @@
+---
+/**
+ * Tabbed code blocks, used for the install command per platform.
+ *
+ * Pass `tabs` as `{ id, label }` pairs and provide one named slot per tab id.
+ * In MDX, put a fenced code block inside a `<Fragment slot="id">` (with blank
+ * lines around the fence so it is parsed as Markdown):
+ *
+ *   <CodeTabs tabs={[{ id: "unix", label: "macOS / Linux" }]}>
+ *     <Fragment slot="unix">
+ *
+ *   ```sh
+ *   curl ...
+ *   ```
+ *
+ *     </Fragment>
+ *   </CodeTabs>
+ *
+ * The first tab is selected by default. Tabs follow the WAI-ARIA tabs
+ * pattern: arrow keys, Home and End move between them. Without JavaScript the
+ * first panel still shows.
+ */
+interface Props {
+  tabs: { id: string; label: string }[];
+}
+
+/** Module-level counter so element ids stay unique and builds stay deterministic. */
+let instance = 0;
+
+const { tabs } = Astro.props;
+const uid = `ct${instance++}`;
+---
+
+<div class="code-tabs" data-code-tabs>
+  <div class="tablist" role="tablist">
+    {
+      tabs.map((tab, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`${uid}-tab-${tab.id}`}
+          aria-controls={`${uid}-panel-${tab.id}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {tab.label}
+        </button>
+      ))
+    }
+  </div>
+  {
+    tabs.map((tab, i) => (
+      <div
+        class="panel"
+        role="tabpanel"
+        id={`${uid}-panel-${tab.id}`}
+        aria-labelledby={`${uid}-tab-${tab.id}`}
+        hidden={i !== 0}
+      >
+        <slot name={tab.id} />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .code-tabs {
+    margin: 0 0 1.25rem;
+    text-align: left;
+  }
+
+  .tablist {
+    display: flex;
+    gap: 0.25rem;
+    padding-left: 0.5rem;
+    overflow-x: auto;
+  }
+
+  button[role="tab"] {
+    padding: 0.35rem 0.8rem;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    white-space: nowrap;
+  }
+
+  button[role="tab"]:hover {
+    color: var(--text);
+  }
+
+  button[role="tab"][aria-selected="true"] {
+    color: var(--text);
+    background: var(--bg-surface);
+    border-color: var(--border);
+    /* Sit over the panel's top border so the tab and block read as one. */
+    margin-bottom: -1px;
+    position: relative;
+  }
+
+  .panel :global(pre.astro-code) {
+    margin: 0;
+    border-radius: var(--radius-lg);
+  }
+
+  .panel :global(.code-block) {
+    margin: 0;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-code-tabs]").forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+
+    /** Select one tab: update ARIA state and show only its panel. */
+    function select(tab: HTMLButtonElement, focus: boolean) {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = root.querySelector<HTMLElement>(`#${t.getAttribute("aria-controls")}`);
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(tab, false));
+      tab.addEventListener("keydown", (e) => {
+        const next =
+          e.key === "ArrowRight" ? (i + 1) % tabs.length
+          : e.key === "ArrowLeft" ? (i - 1 + tabs.length) % tabs.length
+          : e.key === "Home" ? 0
+          : e.key === "End" ? tabs.length - 1
+          : -1;
+        if (next >= 0) {
+          e.preventDefault();
+          select(tabs[next], true);
+        }
+      });
+    });
+  });
+</script>

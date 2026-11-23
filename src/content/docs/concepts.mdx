@@ -1,0 +1,41 @@
+---
+title: Concepts
+description: Packages, sessions, members and landing branches, and how they lay out on disk.
+---
+
+| Term | Meaning |
+| --- | --- |
+| Package | A definition under the package root (default `~/.vmono`): the members, a purpose, context, notes and a role per member. It has its own small git repo, and holds no worktrees. |
+| Session | One piece of work on a package: a directory with its own branch, its own git repo, and a worktree of every member. It is what a harness opens. A package has any number of them side by side. |
+| Member | A source repo included in a package. Every session has a worktree of every member. |
+| Active member | Checked out on the session branch (default `vmono/<package>/<session>`). The agent may edit it and commit to it. |
+| Reference member | Checked out detached at a fixed ref under `_ref/`. Read-only context. |
+| Landing branch | The branch in a member's source repo that the session's work lands on when it is finished. Each member has its own, recorded in the session when it is created: by default the branch that member's source repo has checked out. |
+| Purpose / Context / Notes / Role | Free text that belongs to the package: what the work is, what to know, a dated log, and what each member contributes. Sessions share it; they have none of their own. |
+
+## On disk
+
+A package with two sessions looks like this:
+
+```text
+~/.vmono/project/
+├── .vmono/manifest.toml     source of truth for the package
+├── .git/  .gitignore        the package's own repo: tracks only .vmono/
+├── token-refresh/           a session: what the harness opens
+│   ├── .vmono/session.toml  name, package, branch
+│   ├── .git/                the session's own repo (one harness project per session)
+│   ├── AGENTS.md            generated block + your own notes
+│   ├── CLAUDE.md            generated: @AGENTS.md
+│   ├── .claude/             generated: settings.json, skills/vmono (the Claude Code plugin)
+│   ├── .agents/             generated: skills/vmono, for Codex and Pi
+│   ├── opencode.json        generated
+│   ├── member-a/            active member (worktree on vmono/project/token-refresh)
+│   └── _ref/member-c/       reference member (detached worktree)
+└── spike/                   another session, with its own branch and worktrees
+```
+
+Everything except the manifest, the session file and your own text in `AGENTS.md` (outside the `<!-- vmono:begin -->` / `<!-- vmono:end -->` markers) is rebuilt from the manifest. Changing the package (a note, a new member, an edit) applies to every session. Task details that belong to one piece of work stay in the harness conversation, and the vmono skill tells the agent to write to the package only what every future session will need. Packages and sessions cannot be renamed: harness session history is keyed by path.
+
+## Branch names
+
+A branch can be checked out in only one worktree at a time, and git cannot hold both `vmono/project` and `vmono/project/spike`, which is why session branches include the package name. If a branch name in the way already exists, vmono says so and suggests `--branch`; it never renames branches.

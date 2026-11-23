@@ -1,0 +1,29 @@
+---
+title: Finishing a session
+description: Land a session's commits on each member's branch in its source repo, locally.
+---
+
+A session is done when its work has landed on a branch in each member's source repo. `vmono session finish` does that locally; it never pushes.
+
+1. For each active member, the session's own commits (on the session branch, but on neither the member's base nor its landing branch) are rebased onto the landing branch, inside the session's worktree.
+2. The landing branch in the source repo then moves to the result: fast-forwarded when it is checked out in a clean worktree, updated in place when nothing has it checked out, and created when it does not exist yet.
+
+## Landing branches
+
+Members with no commits of their own are skipped. Landing branches are per member, since repos need not share a branch name. When a session is created, each member's is recorded as the branch its source repo has checked out at that moment (a source on a detached HEAD falls back to the branch its base names). Override them at create with `--into BRANCH` for every member or `--into MEMBER=BRANCH` for one (repeatable), or in the `into` rows of the TUI prompt, which start filled in. Change them later with `vmono session into [pkg/session] --all B --member NAME=B`, with `i` in the TUI finish dialog, or with `--into` on `finish`; `vmono session into` with no flags lists them. A branch that does not exist yet is created when the session lands.
+
+When a member's landing branch is not the branch its base names (a feature branch, say) and it exists in the source, the session starts from it, so the work builds on that branch and lands back on it. When it is the base's branch, the session starts from the base (`origin/main`) as usual, so a stale local `main` is never the start point. A session started with the source on a stray branch lands there, so check the `into` rows before starting; the finish dialog shows each member's target too.
+
+## When it refuses
+
+Nothing moves unless every member can land. Uncommitted or untracked files, a landing branch checked out with uncommitted changes, or a rebase already in progress each refuse the finish (exit code `2`, with the reasons; `--json` lists them per member). If a rebase stops on conflicts, they stay in that member's worktree: resolve them, `git add`, `git rebase --continue`, and run `vmono session finish` again. Members already rebased are found up to date. If moving the branches fails partway, the ones already moved are put back.
+
+## After landing
+
+A finished session is not a removed one. It stays in the package's session list, dimmed and sorted below the others, with its worktrees and branch, until you remove it (`ctrl+d` in the TUI, `vmono session rm`, or `finish --close` to do both at once). Its state is derived rather than stored: any new commit or uncommitted edit makes it `in-progress` again, relaunching it changes nothing, and finishing again lands only the new commits. `vmono session ls`, `status` and `show --json` report the state, and `status` shows what is left to land in each member.
+
+The vmono skill teaches the agent to do this when you say the work is done (in Claude Code, `/vmono:finish` says it for you): commit in every member, run `vmono session finish`, resolve a conflict if one stops it, and report what landed where. The adapters ask for permission first, and the agent never passes `--close` or pushes.
+
+## Packages from before sessions
+
+Earlier versions kept a package's branch and worktrees in the package itself. Such a package lists as needing migration, and `vmono doctor --fix` converts it into a package with one session named `main` (or `main-2` and so on if a member is already called `main`). The members' worktrees move into the session and are repaired in the source repos, your own text in `AGENTS.md` comes along, the session keeps the old branch, and the package's git history is kept. Harness history keyed by the old path, which Claude Code uses, does not follow the move, and the kept branch `vmono/<package>` means a new session needs `--branch` or a renamed old branch.
