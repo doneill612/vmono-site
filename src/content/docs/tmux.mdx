@@ -12,7 +12,7 @@ vmono integration install tmux
 tmux source-file ~/.tmux.conf     # or wherever the install says it wired
 ```
 
-Every session gets a tmux session of its own, named `package/session`, with the harness as its only process. Opening a session creates it, or switches to it when it already exists, and never starts a second harness. Inside tmux the current client is switched; outside tmux vmono attaches. When the harness exits, tmux closes the session, as a direct launch returns you to your shell.
+Every session gets a tmux session of its own, named `package/session`, with the harness as its only process. Opening a session creates it, or switches to it when it already exists, and never starts a second harness. Inside tmux the current client is switched; outside tmux vmono attaches. When the harness exits, tmux closes the session, as a direct launch returns you to your shell. Removing the vmono session (`session rm`, `finish --close`, `delete`) closes its tmux session too, unless vmono itself is running in it, in which case it says so and leaves it open.
 
 The install also adds `prefix + V`, which opens the vmono TUI in a popup. Launching a session from it switches the client to that session's tmux session and closes the popup, so the TUI works as a control panel for every running agent.
 
@@ -40,12 +40,4 @@ Set `tmux_switch = false` to stay put. vmono still creates or finds the session,
 
 ## The launcher setting
 
-`launcher` in [the config](/docs/configuration) decides where a session's harness starts, whether it is opened from `vmono open` or from the TUI.
-
-| Value | Harness starts |
-| --- | --- |
-| `direct` | In the terminal you are in, replacing vmono. The default |
-| `auto` | In tmux when vmono runs inside tmux, and directly otherwise. What the install sets, so a terminal outside tmux works as before |
-| `tmux` | Always in tmux, and an error if tmux is missing |
-
-`VMONO_LAUNCHER` overrides it for one command.
+`launcher` in [the config](/docs/configuration#launcher) decides where a session's harness starts, whether it is opened from `vmono open` or from the TUI. It takes `direct`, `auto`, `tmux` and `herdr`; `auto` picks tmux when vmono runs inside tmux. See [herdr](/docs/herdr) for the other multiplexer.

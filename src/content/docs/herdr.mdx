@@ -1,0 +1,38 @@
+---
+title: herdr
+description: Give every session its own herdr workspace, and open the TUI in a popup, with vmono integration install herdr.
+---
+
+[herdr](https://herdr.dev) is a terminal workspace manager for coding agents. Like the [tmux integration](/docs/tmux), the herdr one changes where a session's harness starts, so several agents run side by side and the TUI works as a control panel for them. The files it installs are embedded in the vmono binary, so they always match the version you run.
+
+## Install
+
+```sh
+vmono integration install herdr
+herdr server reload-config
+```
+
+Every session gets a herdr workspace of its own, labeled `package/session` and rooted at the session. Opening a session creates it, or goes to it when it already exists, and never starts a second harness. When the harness exits, the workspace's shell stays, and opening the session again starts the harness there. Removing the vmono session (`session rm`, `finish --close`, `delete`) closes its workspace, unless vmono is running in it.
+
+The install also binds `prefix + shift + v`, which opens the vmono TUI in a popup. Launching a session from it goes to that session's workspace and closes the popup.
+
+| Does | Where |
+| --- | --- |
+| Adds one marked block that binds the key | herdr's config: `$HERDR_CONFIG_PATH`, else `~/.config/herdr/config.toml` |
+| Sets `launcher = "auto"` | `config.toml`, unless a launcher is already set or you pass `--no-launcher` |
+
+The install refuses a key that herdr's config already uses; `--key` picks another. Nothing is reloaded for you. `vmono integration uninstall herdr` removes the block, and `vmono integration print herdr` prints it if you would rather manage it in your dotfiles. Keep your own settings above the block: a key written after it would belong to its table.
+
+## Moving, or staying put
+
+A launch from inside an agent does not move you. It prints the command that shows the workspace instead. Set `herdr_focus = false` in [the config](/docs/configuration) (or `VMONO_HERDR_FOCUS=false` for one command) to get the same on every launch.
+
+## Agent state in the TUI
+
+Under herdr, the TUI's sessions view has an `agent` column that says what each agent is doing, and the packages view counts them. See [The TUI](/docs/tui#agent-state).
+
+## Details
+
+- vmono finds its workspaces by a token it sets on each one, so renaming a workspace does not lose it. A herdr restart drops the tokens; after one, workspaces are found by label and directory instead.
+- Checked against herdr 0.9.5. Not supported on Windows.
+- `launcher` decides where a harness starts. See [The launcher setting](/docs/configuration#launcher).
