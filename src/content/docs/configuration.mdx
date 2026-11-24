@@ -15,8 +15,12 @@ fetch_on_create = true      # fetch source repos before adding worktrees; failur
 default_harness = "claude"
 auto_commit     = true      # commit every package change to the package's own repo
 return_to_tui   = false     # always true on Windows
-launcher        = "direct"  # or "auto" / "tmux": where a session's harness starts (see tmux)
+launcher        = "direct"  # or "auto" / "tmux" / "herdr": where a session's harness starts (see Launcher)
 tmux_switch     = true      # tmux launcher: switch to the session's tmux session; false only notifies
+herdr_focus     = true      # herdr launcher: focus the session's herdr workspace; false only notifies
+
+[hooks]
+post_create = "code ."      # also pre_remove and post_finish; see Setup and hooks
 
 [harness.claude]
 command = "claude"
@@ -33,8 +37,21 @@ Any CLI that takes its working directory as its project can be a harness. The `a
 
 ## Launcher
 
-`launcher` decides where `vmono open`, and launching from the TUI, start a session's harness: `direct` (the default) in the terminal you are in, `auto` in tmux when vmono runs inside tmux and directly otherwise, and `tmux` always in tmux. `tmux_switch` chooses whether the tmux launcher moves you to the session's tmux session or only tells you where it is. `vmono integration install tmux` sets `launcher = "auto"` for you; see [tmux](/docs/tmux).
+`launcher` decides where `vmono open`, and launching from the TUI, start a session's harness:
+
+| Value | Harness starts |
+| --- | --- |
+| `direct` | In the terminal you are in, replacing vmono. The default |
+| `auto` | In herdr or tmux when vmono runs inside one, and directly otherwise. What an integration install sets, so a terminal outside them works as before |
+| `tmux` | Always in tmux, and an error if tmux is missing |
+| `herdr` | Always in herdr, and an error if herdr is missing |
+
+`tmux_switch` chooses whether the tmux launcher moves you to the session's tmux session or only tells you where it is, and `herdr_focus` does the same for herdr workspaces. `vmono integration install tmux` or `herdr` sets `launcher = "auto"` for you; see [tmux](/docs/tmux) and [herdr](/docs/herdr). `VMONO_LAUNCHER` overrides the setting for one command, such as `VMONO_LAUNCHER=direct vmono open pkg/session` to see why a harness exits at once.
+
+## Hooks
+
+`[hooks]` holds commands that run when any session is created, removed or finished. See [Setup and hooks](/docs/setup-and-hooks) for the three hooks, their options and how a failure is handled.
 
 ## Precedence
 
-Flags, then `VMONO_*` environment variables, then the file, then defaults. Settings have a matching variable, such as `VMONO_LAUNCHER` and `VMONO_TMUX_SWITCH` for the two above. `VMONO_CONFIG_DIR` and `VMONO_STATE_DIR` relocate the config and the index cache.
+Flags, then `VMONO_*` environment variables, then the file, then defaults. Settings have a matching variable, such as `VMONO_LAUNCHER`, `VMONO_TMUX_SWITCH` and `VMONO_HERDR_FOCUS` for the ones above, and `VMONO_NO_HOOKS=1` for `--no-hooks`. `VMONO_CONFIG_DIR` and `VMONO_STATE_DIR` relocate the config and the index cache.

@@ -3,17 +3,18 @@ title: Commands
 description: Every vmono command, its flags, and its exit codes.
 ---
 
-Every read command takes `--json`. Anything that could discard work refuses unless given `--force`. Inside a session, the package and session arguments are optional. Commands that act on a session take `pkg/session`; a bare `pkg` works when it has exactly one session, and otherwise the error lists them.
+Every read command takes `--json`. Anything that could discard work refuses unless given `--force`. Any command takes `--no-hooks` to skip [hooks, setup and teardown](/docs/setup-and-hooks). Inside a session, the package and session arguments are optional. Commands that act on a session take `pkg/session`; a bare `pkg` works when it has exactly one session, and otherwise the error lists them.
 
 | Command | Does |
 | --- | --- |
 | `vmono` | Open the TUI |
 | `vmono init [--source-root P]... [--package-root P]` | Write the global config without prompts |
 | `vmono ls` / `vmono repos` | List packages / known repos |
-| `vmono new <pkg> --active a,b [--ref c] [--purpose-file F] [--context-file F] [--harness H] [--session S [--branch B] [--into [MEMBER=]B]... [--reuse-branch]]` | Define a package, and optionally start its first session |
-| `vmono session new [pkg] <name> [--branch B] [--into [MEMBER=]B]... [--reuse-branch]` | Start a session: a worktree of every member on a new branch. Records each member's landing branch (default: its source's checked-out branch) |
+| `vmono new <pkg> --active a,b [--ref c] [--purpose-file F] [--context-file F] [--harness H] [--session S [--branch B] [--into [MEMBER=]B]... [--track [MEMBER=]B]... [--reuse-branch]]` | Define a package, and optionally start its first session |
+| `vmono session new [pkg] <name> [--branch B] [--into [MEMBER=]B]... [--track [MEMBER=]B]... [--reuse-branch]` | Start a session: a worktree of every member on a new branch. Records each member's landing branch (default: its source's checked-out branch). `--track` starts from a branch on the remote; see [Finishing a session](/docs/finishing-a-session#starting-from-a-remote-branch) |
 | `vmono session into [pkg/session] [--all B] [--member NAME=B]...` | Show each member's landing branch, or change them |
 | `vmono session ls [pkg]` | List a package's sessions and whether each is finished |
+| `vmono session update [pkg/session] [--member NAME]... [--merge] [--no-fetch] [--dry-run]` | Fetch, then rebase the session's commits onto the latest of each member's landing branch. See [Updating a session](/docs/updating-a-session) |
 | `vmono session finish [pkg/session] [--into [MEMBER=]B]... [--close] [--dry-run]` | Land the session's commits on each member's branch in its source repo. Nothing is pushed; see [Finishing a session](/docs/finishing-a-session) |
 | `vmono session push [pkg/session] [--member NAME]... [--dry-run] [--json]` | Push a finished session's landing branches to their remotes, never forced; see [Pushing](/docs/finishing-a-session#pushing) |
 | `vmono session rm <pkg>/<session> [--force] [--delete-branches]` | Remove a session; the package and its other sessions stay |
@@ -26,14 +27,14 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono describe [pkg] --purpose T \| --context T` | Replace the purpose or context (`--purpose-file`, `--context-file` too) |
 | `vmono role [pkg] <member> TEXT` | Set a member's role |
 | `vmono note [pkg] TEXT` | Append a note to the package, stamped with time and author |
-| `vmono open [pkg[/session]] [--harness H] [-- ARGS]` | Launch a harness at a session root, in this terminal or in a tmux session of its own, as the `launcher` setting says |
+| `vmono open [pkg[/session]] [--harness H] [-- ARGS]` | Launch a harness at a session root, in this terminal or in a tmux session or herdr workspace of its own, as the `launcher` setting says |
 | `vmono path [pkg[/session]]` | Print a session's path, or the package's when no session is meant |
 | `vmono delete <pkg> [--force] [--delete-branches]` | Tear down a package and every one of its sessions |
 | `vmono inspect [pkg[/session]]` | A session's full resolved model as JSON, including each member's `git_common_dir` |
 | `vmono doctor [--fix]` | Find drift, migrate packages from before sessions, and rebuild the index |
 | `vmono shell-init zsh\|bash\|fish\|pwsh` | Print a `vcd <pkg>[/session]` function |
 | `vmono integration ls [--json]` | List integrations and whether each is installed |
-| `vmono integration install <name> [--no-launcher]` | Write an integration's files, wire them into the tool, and turn on its launcher. See [tmux](/docs/tmux) |
+| `vmono integration install <name> [--no-launcher] [--key K]` | Write an integration's files, wire them into the tool, and turn on its launcher. `--key` picks the key that opens the TUI (herdr). See [tmux](/docs/tmux) and [herdr](/docs/herdr) |
 | `vmono integration uninstall <name>` | Remove what install added |
 | `vmono integration print <name>` | Print an integration's files instead of installing them |
 
@@ -43,7 +44,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | --- | --- |
 | `0` | Success |
 | `1` | Error |
-| `2` | Refused because work would be lost (or, for `session finish`, because a member cannot land yet; or, for `session push`, because the session is not finished or a member is blocked) |
-| `3` | Not found |
+| `2` | Refused because work would be lost (or, for `session finish`, because a member cannot land yet; or, for `session push`, because the session is not finished or a member is blocked; or, for `session update`, because a member was skipped or conflicted; or because a `pre_remove` hook set to abort kept the session) |
+| `3` | Not found, including a `--track MEMBER=BRANCH` whose remote has no such branch |
 
 When a harness started with `vmono open` exits, vmono exits with its status.

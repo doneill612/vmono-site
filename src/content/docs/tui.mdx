@@ -18,7 +18,11 @@ You rarely need a key. **`enter` opens a menu of everything you can do to the hi
 | repos | palette | Every known repo and how many packages use it; `→` lists those packages |
 | harnesses | palette | Configured harnesses, whether each is on `PATH`, and the default |
 
-`esc` goes back. `:` (or `ctrl+p`) opens the command palette, a fuzzy-filtered list of everything you can do from where you are: go to a view (`repos`, `harnesses`, `settings`, `new package`, `sessions of <package>`), any action on the highlighted row, sort the list by a column, reload, quit. `/` filters the current list as you type. Nothing refreshes by itself: `ctrl+r` reloads the current view, and a view reloads when you come back to it.
+`esc` goes back. `:` (or `ctrl+p`) opens the command palette, a fuzzy-filtered list of everything you can do from where you are: go to a view (`repos`, `harnesses`, `settings`, `new package`, `sessions of <package>`), any action on the highlighted row, sort the list by a column, reload, quit. `/` filters the current list as you type. Nothing refreshes by itself, except [agent state](#agent-state): `ctrl+r` reloads the current view, and a view reloads when you come back to it.
+
+## Agent state
+
+When sessions launch in herdr or tmux, the sessions view has an `agent` column, and the packages view counts them. Under [herdr](/docs/herdr) it says what each agent is doing (`▲ blocked`, `● working`, `○ idle`, `✓ done`); under [tmux](/docs/tmux), only that one is `running`. It is read every few seconds while one of those views is open. Updating a session whose agent is working asks for `u` a second time.
 
 ## Shortcuts
 
@@ -34,18 +38,19 @@ None of these are required; the menu does the same things.
 | `s` / `f` | Sync every session / fetch every member's source |
 | `ctrl+d` | Delete the package and all its sessions (asks first; typed confirmation if work would be lost in any of them) |
 | `y` | Copy the package path |
-| `c` | Edit the config (package root, source roots, default harness) |
+| `c` | Edit the config (package root, source roots, [hooks](/docs/setup-and-hooks#hooks)) |
 
 | Key (sessions) | Does |
 | --- | --- |
-| `enter` | Open the menu: launch, launch with…, members, describe, sync, fetch, copy path, landing branches, finish, push, delete |
+| `enter` | Open the menu: launch, launch with…, members, describe, sync, fetch, update, copy path, landing branches, finish, push, delete |
 | `o` | Launch the default harness in the session |
 | `l` | Pick a harness |
-| `n` | Start a new session: a name, optionally a branch (default `vmono/<package>/<session>`), and one `into` row per active member, filled in with the branch its source has checked out |
+| `n` | Start a new session: a name, optionally a branch (default `vmono/<package>/<session>`), and one `into` row per active member, filled in with the branch its source has checked out. `ctrl+t` picks a branch on the members' remotes to start from and land on |
 | `i` | Change the branch each member's work lands on, without starting a finish |
 | `F` | Finish the session: shows what would land on which branch, or what blocks it, then `y` lands it. `i` changes the members' landing branches, `c` also removes the session afterward. A conflict offers to launch the harness in the session to resolve it |
 | `P` | Push a finished session: shows each member's landing branch and the remote it goes to, or what blocks it, then `y` pushes. Never forced. A session that is not finished gets a dialog saying why, with `F` to finish it unless uncommitted work stops that |
 | `m` / `d` | Members of the session / describe it |
+| `u` | [Update the session](/docs/updating-a-session): rebase its commits onto the latest of each member's landing branch |
 | `s` / `f` | Sync the session / fetch every member's source |
 | `e` | Edit the package |
 | `ctrl+d` | Delete the session; the package and its other sessions stay |
@@ -58,7 +63,7 @@ None of these are required; the menu does the same things.
 
 Members, repos and harnesses have menus too (`enter`), with the same keys where they apply. The members preview shows where each landing branch is pushed and how many commits it has that the remote lacks, and a finished session's preview sums them. Sorting is only in the palette (`sort by name`, `sort by opened`, …); choosing the same column again reverses it.
 
-Launching starts the harness where the `launcher` setting says. With the [tmux integration](/docs/tmux), a launch switches your tmux client to the session's own tmux session, and a TUI opened from the `prefix + V` popup closes once it has. If tmux fails, the TUI stays open and shows tmux's message.
+Launching starts the harness where the `launcher` setting says. With the [tmux integration](/docs/tmux), a launch switches your tmux client to the session's own tmux session, and a TUI opened from the `prefix + V` popup closes once it has. With [herdr](/docs/herdr), a launch goes to the session's workspace, and a TUI opened from the `prefix + shift + v` popup closes. If tmux or herdr fails, the TUI stays open and shows its message.
 
 Creating a package returns to the packages screen; start a session from there (`enter`, then `New session`, or `→` then `n`) when you want one.
 
