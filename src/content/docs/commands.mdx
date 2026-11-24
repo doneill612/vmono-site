@@ -19,7 +19,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono session rm <pkg>/<session> [--force] [--delete-branches]` | Remove a session; the package and its other sessions stay |
 | `vmono add [pkg] <repo> [--ref] [--role R]` | Add a member to the package, and so to every session (a known repo name or any path) |
 | `vmono rm [pkg] <member> [--force] [--delete-branch]` | Remove a member from every session |
-| `vmono edit [pkg]` | Edit the package manifest in `$EDITOR`; changes apply as a diff to every session |
+| `vmono edit [pkg] [--force] [--reuse-branch]` | Edit the package manifest in `$EDITOR`; changes apply as a diff to every session. `--force` allows removals that discard unsaved work; `--reuse-branch` checks out a session branch that already exists |
 | `vmono sync [pkg[/session]] [--refs]` | Recreate missing worktrees and regenerate files, in one session or all of a package's; `--refs` moves reference members to their latest fetched ref |
 | `vmono status [pkg[/session]]` | The session's state, and per member: branch or ref, dirty, untracked, ahead/behind, and what is left to land |
 | `vmono show [pkg[/session]]` | Purpose, context, notes, sessions and members; with a session, each member's live state |
