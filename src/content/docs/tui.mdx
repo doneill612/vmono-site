@@ -58,6 +58,8 @@ None of these are required; the menu does the same things.
 
 Members, repos and harnesses have menus too (`enter`), with the same keys where they apply. The members preview shows where each landing branch is pushed and how many commits it has that the remote lacks, and a finished session's preview sums them. Sorting is only in the palette (`sort by name`, `sort by opened`, …); choosing the same column again reverses it.
 
+Launching starts the harness where the `launcher` setting says. With the [tmux integration](/docs/tmux), a launch switches your tmux client to the session's own tmux session, and a TUI opened from the `prefix + V` popup closes once it has. If tmux fails, the TUI stays open and shows tmux's message.
+
 Creating a package returns to the packages screen; start a session from there (`enter`, then `New session`, or `→` then `n`) when you want one.
 
 ## The repo finder

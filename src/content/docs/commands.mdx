@@ -26,12 +26,16 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono describe [pkg] --purpose T \| --context T` | Replace the purpose or context (`--purpose-file`, `--context-file` too) |
 | `vmono role [pkg] <member> TEXT` | Set a member's role |
 | `vmono note [pkg] TEXT` | Append a note to the package, stamped with time and author |
-| `vmono open [pkg[/session]] [--harness H] [-- ARGS]` | Launch a harness at a session root |
+| `vmono open [pkg[/session]] [--harness H] [-- ARGS]` | Launch a harness at a session root, in this terminal or in a tmux session of its own, as the `launcher` setting says |
 | `vmono path [pkg[/session]]` | Print a session's path, or the package's when no session is meant |
 | `vmono delete <pkg> [--force] [--delete-branches]` | Tear down a package and every one of its sessions |
 | `vmono inspect [pkg[/session]]` | A session's full resolved model as JSON, including each member's `git_common_dir` |
 | `vmono doctor [--fix]` | Find drift, migrate packages from before sessions, and rebuild the index |
 | `vmono shell-init zsh\|bash\|fish\|pwsh` | Print a `vcd <pkg>[/session]` function |
+| `vmono integration ls [--json]` | List integrations and whether each is installed |
+| `vmono integration install <name> [--no-launcher]` | Write an integration's files, wire them into the tool, and turn on its launcher. See [tmux](/docs/tmux) |
+| `vmono integration uninstall <name>` | Remove what install added |
+| `vmono integration print <name>` | Print an integration's files instead of installing them |
 
 ## Exit codes
 

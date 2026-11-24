@@ -1,0 +1,51 @@
+---
+title: tmux
+description: Give every session its own tmux session, and open the TUI in a popup, with vmono integration install tmux.
+---
+
+By default, opening a session runs the harness in the terminal you are in and replaces vmono, so each agent needs a terminal of its own. An integration changes where the harness starts. The files each one installs are embedded in the vmono binary and written out by `vmono integration install`, so they always match the version you run.
+
+## Install
+
+```sh
+vmono integration install tmux
+tmux source-file ~/.tmux.conf     # or wherever the install says it wired
+```
+
+Every session gets a tmux session of its own, named `package/session`, with the harness as its only process. Opening a session creates it, or switches to it when it already exists, and never starts a second harness. Inside tmux the current client is switched; outside tmux vmono attaches. When the harness exits, tmux closes the session, as a direct launch returns you to your shell.
+
+The install also adds `prefix + V`, which opens the vmono TUI in a popup. Launching a session from it switches the client to that session's tmux session and closes the popup, so the TUI works as a control panel for every running agent.
+
+| Does | Where |
+| --- | --- |
+| Writes the key bindings | `~/.config/vmono/integrations/tmux/vmono.tmux` |
+| Adds one marked line that sources it | The first of `~/.tmux.conf`, `$XDG_CONFIG_HOME/tmux/tmux.conf` and `~/.config/tmux/tmux.conf` that exists, or `~/.tmux.conf` if none does. A symlinked file stays a symlink |
+| Sets `launcher = "auto"` | `config.toml`, unless a launcher is already set or you pass `--no-launcher` |
+
+Nothing is reloaded for you. `vmono integration uninstall tmux` removes the marked line and vmono's own directory and puts `launcher` back to `direct`; `vmono integration print tmux` prints the file if you would rather manage it in your dotfiles. Put your own changes in your tmux config after the sourced line, since vmono rewrites its file on every install. `vmono integration ls` shows whether each integration is installed, and whether it is out of date after an upgrade.
+
+## Switching or staying put
+
+Switching is the default, but it moves your terminal out of the tmux session you were working in. That session keeps running: `prefix + L` goes back, and `prefix + s` lists them all.
+
+Set `tmux_switch = false` to stay put. vmono still creates or finds the session, then shows `vmono: claude is running in tmux session "pkg/session" (prefix + s to switch)` in the tmux status line (and on standard error), and a TUI opened from the popup closes. Outside tmux the notice gives the `tmux attach` command instead, and nothing is attached. `VMONO_TMUX_SWITCH=false` does the same for one command.
+
+## Details
+
+- vmono finds its sessions by a `@vmono_session` tag it sets on each tmux session, not by name, so renaming one in tmux does not lose it.
+- A tmux session name cannot contain `.` or `:`, so those become `_`.
+- Arguments after `--` in `vmono open` only apply when the session is created; an existing session is reused as it is.
+- If a new tmux session ends as soon as it starts, the harness probably exited at once. `VMONO_LAUNCHER=direct vmono open pkg/session` runs it in your terminal so you can see why.
+- tmux 3.0 or newer is needed. Native Windows has no tmux, so `auto` stays direct there.
+
+## The launcher setting
+
+`launcher` in [the config](/docs/configuration) decides where a session's harness starts, whether it is opened from `vmono open` or from the TUI.
+
+| Value | Harness starts |
+| --- | --- |
+| `direct` | In the terminal you are in, replacing vmono. The default |
+| `auto` | In tmux when vmono runs inside tmux, and directly otherwise. What the install sets, so a terminal outside tmux works as before |
+| `tmux` | Always in tmux, and an error if tmux is missing |
+
+`VMONO_LAUNCHER` overrides it for one command.

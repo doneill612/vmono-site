@@ -12,6 +12,7 @@ vmono manages **packages** and their **sessions**. A package is a set of git rep
 - The package's purpose, context, notes and each member's role are written once and rendered into every session's `AGENTS.md` / `CLAUDE.md`.
 - A harness opened at a session root works with no changes. Claude Code, OpenCode, Codex and Pi work out of the box; Claude Code and OpenCode also get generated config, and Codex and Pi get the skill.
 - A skill teaches the harness running inside a session to read the package, and to write back to it only what every future session needs. Claude Code gets it as a [plugin](/docs/claude-code-plugin) that also adds commands and live session state; other harnesses get the same skill on its own.
+- With the [tmux integration](/docs/tmux), every session's harness runs in a tmux session of its own, so several agents run side by side, and `prefix + V` opens the TUI in a popup as a control panel for them.
 - Runs on macOS, Linux and Windows, without admin rights.
 
 ## Where to go next

@@ -15,6 +15,8 @@ fetch_on_create = true      # fetch source repos before adding worktrees; failur
 default_harness = "claude"
 auto_commit     = true      # commit every package change to the package's own repo
 return_to_tui   = false     # always true on Windows
+launcher        = "direct"  # or "auto" / "tmux": where a session's harness starts (see tmux)
+tmux_switch     = true      # tmux launcher: switch to the session's tmux session; false only notifies
 
 [harness.claude]
 command = "claude"
@@ -29,6 +31,10 @@ adapter = "agent-skills"
 
 Any CLI that takes its working directory as its project can be a harness. The `adapter` says what vmono generates for it: `claude-code` (settings and the plugin), `opencode` (`opencode.json` and the skill), `agent-skills` (the skill under `.agents/skills/`, for Codex and Pi), or none. A built-in harness listed without an adapter still running its built-in command gets its default one, so a config saved before an adapter existed picks it up.
 
+## Launcher
+
+`launcher` decides where `vmono open`, and launching from the TUI, start a session's harness: `direct` (the default) in the terminal you are in, `auto` in tmux when vmono runs inside tmux and directly otherwise, and `tmux` always in tmux. `tmux_switch` chooses whether the tmux launcher moves you to the session's tmux session or only tells you where it is. `vmono integration install tmux` sets `launcher = "auto"` for you; see [tmux](/docs/tmux).
+
 ## Precedence
 
-Flags, then `VMONO_*` environment variables, then the file, then defaults. `VMONO_CONFIG_DIR` and `VMONO_STATE_DIR` relocate the config and the index cache.
+Flags, then `VMONO_*` environment variables, then the file, then defaults. Settings have a matching variable, such as `VMONO_LAUNCHER` and `VMONO_TMUX_SWITCH` for the two above. `VMONO_CONFIG_DIR` and `VMONO_STATE_DIR` relocate the config and the index cache.

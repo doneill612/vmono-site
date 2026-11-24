@@ -2,7 +2,7 @@
 /**
  * Landing page. Top to bottom: the pitch beside a terminal showing what vmono
  * lays out on disk (colored by the site-wide concept palette), the install
- * command, three numbered steps, a framed screenshot of the TUI, and four
+ * command, three numbered steps, a framed screenshot of the TUI, and five
  * feature rows. Everything links into /docs. Copy is condensed from the vmono
  * README; the tree mirrors the layout described on the Concepts page.
  */
@@ -76,6 +76,11 @@ const features: { hue: Hue; title: string; body: string }[] = [
     hue: "green",
     title: "Works with your harness",
     body: "Claude Code, OpenCode, Codex and Pi work out of the box. A bundled skill teaches the agent to read the package and write back only what future sessions need.",
+  },
+  {
+    hue: "violet",
+    title: "Agents side by side in tmux",
+    body: "One command gives every session its own tmux session, and prefix + V opens the TUI in a popup to jump between running agents.",
   },
 ];
 ---
