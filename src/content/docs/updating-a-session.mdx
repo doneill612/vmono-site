@@ -1,0 +1,29 @@
+---
+title: Updating a session
+description: Catch a session up with the branches its work lands on, by rebasing or merging, before you finish.
+---
+
+`vmono session update [pkg/session]`, or `u` on the session in the TUI, catches a session up with the branches its work lands on. The sources are fetched, then each active member's own commits are rebased inside the session onto its landing branch or that branch's copy on the remote, whichever is further ahead. A landing branch that does not exist yet stands for the member's base. Only the session branch moves; no branch in a source repo does.
+
+## Members are independent
+
+One with uncommitted changes is skipped, and so is one whose landing branch and its remote copy have diverged, because rebasing onto one side could drop the other.
+
+`--merge` merges both sides into the session for those members instead. [Finishing](/docs/finishing-a-session) then fast-forwards the landing branch, and pushing it is a fast-forward again, at the cost of a merge commit that lands with the work. If the landing branch moves before you finish, `finish` blocks that member rather than duplicate upstream commits; run the update with `--merge` again.
+
+A rebase or merge that conflicts is aborted, so that member stays exactly as it was, and the reason names the files.
+
+## Flags and exit code
+
+| Flag | Does |
+| --- | --- |
+| `--member NAME` | Update only this member (repeatable) |
+| `--merge` | Merge both sides of a landing branch that has diverged from its remote copy |
+| `--no-fetch` | Use the refs already on disk. A fetch that fails only warns |
+| `--dry-run` | Show what would be updated without moving any branch |
+
+The command exits `2` when any member was skipped or conflicted.
+
+An update rewrites the session branch, so do it while no agent is in the middle of a change. In the TUI, updating a session whose agent is working asks for `u` a second time.
+
+The vmono skill teaches the agent to run an update when you ask for one, and to ask you before it merges a landing branch that has diverged.

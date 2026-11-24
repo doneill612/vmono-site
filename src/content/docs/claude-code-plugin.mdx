@@ -11,7 +11,7 @@ For Claude Code, vmono writes a plugin into every session at `.claude/skills/vmo
 | SessionStart hook | Runs `vmono hook session-start` when a conversation starts, resumes, is cleared, forked or compacted, and adds the session's live state to the context: each member's branch, uncommitted files, and commits left to land |
 | `/vmono:status` | Summarizes that state on request, including anything that would block finishing |
 | `/vmono:note [text]` | Records a package note from your text; with none, proposes one from the conversation and asks first |
-| `/vmono:finish` | Lands the session: commit in every member, `vmono session finish`, resolve a conflict if one stops it, report what landed. Claude Code still asks for permission to run `vmono session finish` |
+| `/vmono:finish` | Lands the session: commit in every member, `vmono session finish`, resolve a conflict if one stops it, report what landed. Claude Code still asks for permission to run `vmono session finish`. It also carries the guidance for [updating a session](/docs/updating-a-session) when finishing says to |
 
 The hook runs the bare command `vmono`, so `vmono` must be on `PATH` for the harness, as the skill's own commands already assume. It prints nothing outside a session and never fails a start.
 

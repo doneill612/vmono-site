@@ -12,7 +12,13 @@ A session is done when its work has landed on a branch in each member's source r
 
 Members with no commits of their own are skipped. Landing branches are per member, since repos need not share a branch name. When a session is created, each member's is recorded as the branch its source repo has checked out at that moment (a source on a detached HEAD falls back to the branch its base names). Override them at create with `--into BRANCH` for every member or `--into MEMBER=BRANCH` for one (repeatable), or in the `into` rows of the TUI prompt, which start filled in. Change them later with `vmono session into [pkg/session] --all B --member NAME=B`, with `i` on the session in the TUI (or in its finish dialog), or with `--into` on `finish`; `vmono session into` with no flags lists them. A branch that does not exist yet is created when the session lands.
 
-When a member's landing branch is not the branch its base names (a feature branch, say) and it exists in the source, the session starts from it, so the work builds on that branch and lands back on it. When it is the base's branch, the session starts from the base (`origin/main`) as usual, so a stale local `main` is never the start point. A session started with the source on a stray branch lands there, so check the `into` rows before starting; the finish dialog shows each member's target too.
+When a member's landing branch is not the branch its base names (a feature branch, say) and it exists in the source, the session starts from it, so the work builds on that branch and lands back on it. If its remote copy is further ahead, the session starts from that. When it is the base's branch, the session starts from the base (`origin/main`) as usual, so a stale local `main` is never the start point. A session started with the source on a stray branch lands there, so check the `into` rows before starting; the finish dialog shows each member's target too.
+
+### Starting from a remote branch
+
+To start from a branch that is on the remote, such as a teammate's or an open pull request's, pass `--track BRANCH` to `session new`, or press `ctrl+t` in the TUI's new-session prompt to pick one. The sources are fetched first, and for every active member whose remote has the branch, the session starts from it and lands back on it; the others keep their default, with a warning. `--track MEMBER=BRANCH` does it for one member, and fails (exit `3`) if its remote has no such branch. The session still has its own branch. The local landing branch is created at finish, tracking the remote one, and `vmono session push` then updates it.
+
+To pull in what has landed upstream since a session started, see [Updating a session](/docs/updating-a-session).
 
 ## When it refuses
 
@@ -22,7 +28,7 @@ Nothing moves unless every member can land. Uncommitted or untracked files, a la
 
 A finished session is not a removed one. It stays in the package's session list, dimmed and sorted below the others, with its worktrees and branch, until you remove it (`ctrl+d` in the TUI, `vmono session rm`, or `finish --close` to do both at once). Its state is derived rather than stored: any new commit or uncommitted edit makes it `in-progress` again, relaunching it changes nothing, and finishing again lands only the new commits. `vmono session ls`, `status` and `show --json` report the state, and `status` shows what is left to land in each member.
 
-The vmono skill teaches the agent to do this when you say the work is done (in Claude Code, `/vmono:finish` says it for you): commit in every member, run `vmono session finish`, resolve a conflict if one stops it, and report what landed where. The adapters ask for permission first, and the agent never passes `--close` or pushes; pushing is yours, from the TUI or `vmono session push`.
+The vmono skill teaches the agent to do this when you say the work is done (in Claude Code, `/vmono:finish` says it for you): commit in every member, run `vmono session finish`, resolve a conflict if one stops it, and report what landed where. It also teaches updating a session, and to ask you before it merges a landing branch that has diverged. The adapters ask for permission first, and the agent never passes `--close` or pushes; pushing is yours, from the TUI or `vmono session push`.
 
 ## Pushing
 
