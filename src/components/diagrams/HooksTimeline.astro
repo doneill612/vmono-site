@@ -1,0 +1,220 @@
+---
+/**
+ * Diagram for "Setup and hooks": the order in which vmono's own steps, a
+ * member's `setup` and `teardown` commands and the three global hooks run
+ * across a session's life. Read left to right, then top to bottom.
+ *
+ * - Row 1, session created: for each member the worktree is added and its
+ *   `copy` files put in place, then its `setup` commands run; after every
+ *   member, the session's generated files are rendered and committed, and
+ *   `post_create` runs.
+ * - Row 2, session finished: the work lands, then `post_finish` runs. With
+ *   `--close` the removal in row 3 follows.
+ * - Row 3, session removed (`session rm`, `finish --close`, `delete`): the
+ *   safety check runs first, then `pre_remove`, and then for each member its
+ *   `teardown` commands and the worktree removal.
+ *
+ * Chips are styled by what owns the step: vmono itself (plain), the package
+ * manifest's per-member commands (violet, the package's color) and the
+ * global hooks from `config.toml` (a heavier outline). A bracket under a pair
+ * of chips marks the steps that repeat once per member.
+ *
+ * Plain inline SVG in a 760x340 viewBox. The four chip columns start at the x
+ * values in `cols` and are 150 wide, leaving 40 for the arrow between them;
+ * the three rows start at the y values in `rows`.
+ *
+ * Animation: a soft highlight travels along the ten chips in order, one after
+ * the other, in a single 6s loop, so the sequence reads as a timeline of one
+ * session's life. Each chip's highlight is delayed by its position (`--i`)
+ * times 0.5s. The markup is the finished static state; the highlight rects sit
+ * at opacity 0 until the animation runs, and all animation rules are inside a
+ * `prefers-reduced-motion: no-preference` query.
+ */
+import Figure from "../Figure.astro";
+
+/** Chip x origins, four columns. */
+const cols = [20, 210, 400, 590] as const;
+/** Row y origins. Each row is 104 tall: a label, then the chips. */
+const rows = [0, 104, 208] as const;
+
+type Kind = "vm" | "manifest" | "hook";
+interface Chip {
+  col: number;
+  kind: Kind;
+  name: string;
+  note: string;
+}
+
+/** The ten chips in time order; the array index is the animation order. */
+const created: Chip[] = [
+  { col: 0, kind: "vm", name: "worktree added", note: "copy files placed" },
+  { col: 1, kind: "manifest", name: "setup", note: "in the worktree" },
+  { col: 2, kind: "vm", name: "session files", note: "rendered, committed" },
+  { col: 3, kind: "hook", name: "post_create", note: "hook" },
+];
+const finished: Chip[] = [
+  { col: 0, kind: "vm", name: "work lands", note: "branches move" },
+  { col: 1, kind: "hook", name: "post_finish", note: "hook" },
+];
+const removed: Chip[] = [
+  { col: 0, kind: "vm", name: "safety check", note: "dirty work refuses" },
+  { col: 1, kind: "hook", name: "pre_remove", note: "hook" },
+  { col: 2, kind: "manifest", name: "teardown", note: "in the worktree" },
+  { col: 3, kind: "vm", name: "worktree removed", note: "source pruned" },
+];
+
+const lanes = [
+  { y: rows[0], label: "1. Session created", chips: created, offset: 0 },
+  { y: rows[1], label: "2. Session finished", chips: finished, offset: created.length },
+  { y: rows[2], label: "3. Session removed", chips: removed, offset: created.length + finished.length },
+];
+---
+
+<Figure caption="Setup and teardown run per member, inside its worktree; the three hooks run once per session. Each step waits for the one before it.">
+  <svg viewBox="0 0 760 340" role="img" aria-labelledby="hooks-timeline-title hooks-timeline-desc">
+    <title id="hooks-timeline-title">When setup commands, teardown commands and hooks run</title>
+    <desc id="hooks-timeline-desc">
+      Three rows. When a session is created, each member's worktree is added and its copy files placed, then its setup commands run; then the session files are rendered and committed, and the post_create hook runs. When a session is finished, the work lands and then the post_finish hook runs; with the close flag, removal follows. When a session is removed, a safety check runs, then the pre_remove hook, then for each member its teardown commands and its worktree removal.
+    </desc>
+    <defs>
+      <marker id="hooks-timeline-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" class="head"></path>
+      </marker>
+    </defs>
+
+    {lanes.map((lane) => (
+      <g>
+        <text class="lane" x="20" y={lane.y + 18}>{lane.label}</text>
+        {lane.chips.slice(0, -1).map((chip) => (
+          <path class="link" d={`M${cols[chip.col] + 154} ${lane.y + 46} H${cols[chip.col] + 186}`} marker-end="url(#hooks-timeline-head)"></path>
+        ))}
+        {lane.chips.map((chip, i) => (
+          <g>
+            <rect class={`chip ${chip.kind}`} x={cols[chip.col]} y={lane.y + 28} width="150" height="40" rx="7"></rect>
+            <text class={`name ${chip.kind}`} x={cols[chip.col] + 12} y={lane.y + 44}>{chip.name}</text>
+            <text class="note" x={cols[chip.col] + 12} y={lane.y + 60}>{chip.note}</text>
+            <rect class="glow" style={`--i:${lane.offset + i}`} x={cols[chip.col]} y={lane.y + 28} width="150" height="40" rx="7"></rect>
+          </g>
+        ))}
+      </g>
+    ))}
+
+    <!-- Per-member brackets: row 1 under worktree + setup, row 3 under teardown + removal. -->
+    <path class="bracket" d={`M${cols[0]} ${rows[0] + 76} V${rows[0] + 82} H${cols[1] + 150} V${rows[0] + 76}`}></path>
+    <text class="muted mid" x={(cols[0] + cols[1] + 150) / 2} y={rows[0] + 96}>for each member</text>
+    <path class="bracket" d={`M${cols[2]} ${rows[2] + 76} V${rows[2] + 82} H${cols[3] + 150} V${rows[2] + 76}`}></path>
+    <text class="muted mid" x={(cols[2] + cols[3] + 150) / 2} y={rows[2] + 96}>for each member</text>
+
+    <!-- Row 2: the --close hand-off to row 3. -->
+    <path class="link dashed" d={`M${cols[1] + 154} ${rows[1] + 46} H${cols[2] - 4}`} marker-end="url(#hooks-timeline-head)"></path>
+    <text class="muted" x={cols[2] + 12} y={rows[1] + 50}>with --close, removal (3) follows</text>
+
+    <!-- Legend. -->
+    <rect class="chip vm" x="20" y="318" width="22" height="12" rx="3"></rect>
+    <text class="muted" x="50" y="328">vmono</text>
+    <rect class="chip manifest" x="130" y="318" width="22" height="12" rx="3"></rect>
+    <text class="muted" x="160" y="328">setup, teardown (package manifest)</text>
+    <rect class="chip hook" x="420" y="318" width="22" height="12" rx="3"></rect>
+    <text class="muted" x="450" y="328">hooks (config.toml)</text>
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .lane {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted,
+  .note {
+    fill: var(--text-muted);
+  }
+
+  .mid {
+    text-anchor: middle;
+  }
+
+  .name {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .name.manifest {
+    fill: var(--c-violet);
+  }
+
+  .chip {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .chip.manifest {
+    fill: color-mix(in srgb, var(--c-violet) 10%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-violet) 55%, var(--border));
+  }
+
+  .chip.hook {
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+  }
+
+  .dashed {
+    stroke-dasharray: 4 3;
+  }
+
+  .bracket {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.2;
+  }
+
+  .head {
+    fill: var(--text-muted);
+  }
+
+  /* The travelling highlight: invisible unless the animation runs. */
+  .glow {
+    fill: color-mix(in srgb, var(--text) 14%, transparent);
+    stroke: var(--text);
+    stroke-width: 1.5;
+    opacity: 0;
+  }
+
+  /*
+   * One 6s loop; chip i lights up at i * 0.5s for about a second, so the
+   * highlight walks through all ten chips and rests before it starts again.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .glow {
+      animation: step 6s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.5s);
+    }
+  }
+
+  @keyframes step {
+    0% {
+      opacity: 0;
+    }
+    4%,
+    12% {
+      opacity: 1;
+    }
+    20%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>
