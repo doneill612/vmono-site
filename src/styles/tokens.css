@@ -56,7 +56,7 @@
   /*
    * Concept palette. Each color means one thing wherever it appears (landing
    * tree, Concepts table, sidebar groups): violet = package, green = session,
-   * cyan = active member, amber = reference member, rose = landing branch,
+   * cyan = active member, amber = reference member, rose = base branch,
    * lime = hook (the Setup and hooks diagram). Light values are darkened to keep 4.5:1 text contrast on white.
    */
   --c-cyan: #0777a8;

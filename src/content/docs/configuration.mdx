@@ -10,7 +10,6 @@ source_roots    = ["~/source"]              # scanned to fill the repo picker
 repos           = ["~/work/one-off-repo"]   # individual repos, from anywhere
 package_root    = "~/.vmono"
 scan_depth      = 2
-branch_prefix   = "vmono/"
 fetch_on_create = true      # fetch source repos before adding worktrees; failures only warn
 default_harness = "claude"
 auto_commit     = true      # commit every package change to the package's own repo
@@ -20,7 +19,7 @@ tmux_switch     = true      # tmux launcher: switch to the session's tmux sessio
 herdr_focus     = true      # herdr launcher: focus the session's herdr workspace; false only notifies
 
 [hooks]
-post_create = "code ."      # also pre_remove and post_finish; see Setup and hooks
+post_create = "code ."      # also pre_remove and post_push; see Setup and hooks
 
 [harness.claude]
 command = "claude"
@@ -52,7 +51,7 @@ Any CLI that takes its working directory as its project can be a harness. The `a
 
 ## Hooks
 
-`[hooks]` holds commands that run when any session is created, removed or finished. See [Setup and hooks](/docs/setup-and-hooks) for the three hooks, their options and how a failure is handled.
+`[hooks]` holds commands that run when any session is created, pushed or removed. See [Setup and hooks](/docs/setup-and-hooks) for the three hooks, their options and how a failure is handled.
 
 ## Precedence
 

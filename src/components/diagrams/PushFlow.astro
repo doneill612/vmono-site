@@ -1,0 +1,346 @@
+---
+/**
+ * Diagram for "Pushing a session": the path one member's branch takes from the
+ * session's worktree to the base, drawn as four small commit graphs left to
+ * right.
+ *
+ * 1. Commit: the member's branch (green commits) forked from the base (rose
+ *    label); only what is committed is pushed.
+ * 2. Review: `vmono session review` reads the same branch and changes
+ *    nothing.
+ * 3. Push: dashed because nothing is pushed unless asked. The remote is a box
+ *    holding its own copy of the base; the local commits go up into it and
+ *    become a branch of the same name, forked from that base.
+ * 4. Merge: a pull request, opened and merged on the host, brings the branch
+ *    into the base. vmono has no part in this step beyond telling that it
+ *    happened.
+ *
+ * Under the graphs, a band states what a push never does. Plain inline SVG in
+ * a 760x256 viewBox, colored from the site tokens like the other diagrams.
+ *
+ * The markup is the finished, static state. Every panel is visible from the
+ * first paint and loops on its own, so a reader skimming past sees all four
+ * steps move without waiting for a sequence. Each panel's graph sits in a
+ * `.stage` group that fades in and out once per cycle:
+ *
+ * - Commit: the two commits pop in one after the other.
+ * - Review: an outline around the commits fades in.
+ * - Push: a copy of the local commits rises into the remote box while the
+ *   dashed arrow flows, then the edge joining them to the remote's base and the
+ *   branch's name there fade in.
+ * - Merge: the merge commit pops in and the edge into it fades in.
+ *
+ * All the loops share one 5s period so the keyframe percentages line up: the
+ * motion happens between 18% and 46%, then the result holds until the fade.
+ * The animation rules are inside a `prefers-reduced-motion: no-preference`
+ * query; reduced-motion visitors see the static drawing.
+ */
+import Figure from "../Figure.astro";
+
+/** Panel x origins: Commit, Review, Push, Merge. Each panel is 150 wide. */
+const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
+---
+
+<Figure caption="A push sends each member's branch to a branch of the same name on its remote. Opening and merging the pull request happens on your host.">
+  <svg viewBox="0 0 760 256" role="img" aria-labelledby="push-flow-title push-flow-desc">
+    <title id="push-flow-title">How a session's branch gets to the base</title>
+    <desc id="push-flow-desc">
+      The member's work is committed on its branch in the session's worktree, vmono session review shows what a push would publish without changing anything, vmono session push sends the branch to its remote, where it appears under the same name, forked from the base, and a pull request on the host merges it into the base. A push is never forced and never goes to the base.
+    </desc>
+    <defs>
+      <marker id="push-flow-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" class="head"></path>
+      </marker>
+    </defs>
+
+    <rect class="band" x="20" y="202" width="720" height="40" rx="8"></rect>
+    <rect class="band-bar" x="20" y="202" width="4" height="40" rx="2"></rect>
+    <text class="band-text" x="40" y="226">A push is never forced and never goes to the base. A blocked member does not stop the others.</text>
+
+    <path class="link" d="M172 100 H202" marker-end="url(#push-flow-head)"></path>
+    <path class="link" d="M362 100 H392" marker-end="url(#push-flow-head)"></path>
+    <path class="link" d="M552 100 H582" marker-end="url(#push-flow-head)"></path>
+
+    <!-- Panel 1: Commit -->
+    <rect class="panel" x={p0} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p0 + 12} y="30">1. Commit</text>
+    <text class="muted" x={p0 + 12} y="46">session worktree</text>
+    <g class="stage">
+      <path class="edge" d={`M${p0 + 20} 100 H${p0 + 80}`}></path>
+      <path class="edge own" d={`M${p0 + 50} 100 L${p0 + 80} 145 H${p0 + 110}`}></path>
+      {[20, 50, 80].map((x) => <circle class="dot" cx={p0 + x} cy="100" r="6"></circle>)}
+      <circle class="dot own pop" cx={p0 + 80} cy="145" r="6"></circle>
+      <circle class="dot own pop second" cx={p0 + 110} cy="145" r="6"></circle>
+      <text class="tag rose" x={p0 + 80} y="80">base</text>
+      <text class="tag green" x={p0 + 82} y="168">token-refresh</text>
+    </g>
+
+    <!-- Panel 2: Review -->
+    <rect class="panel" x={p1} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p1 + 12} y="30">2. Review</text>
+    <text class="muted" x={p1 + 12} y="46">changes nothing</text>
+    <g class="stage">
+      <path class="edge" d={`M${p1 + 20} 100 H${p1 + 80}`}></path>
+      <path class="edge own" d={`M${p1 + 50} 100 L${p1 + 80} 145 H${p1 + 110}`}></path>
+      {[20, 50, 80].map((x) => <circle class="dot" cx={p1 + x} cy="100" r="6"></circle>)}
+      {[80, 110].map((x) => <circle class="dot own" cx={p1 + x} cy="145" r="6"></circle>)}
+      <rect class="scan late" x={p1 + 68} y="133" width="54" height="24" rx="12"></rect>
+      <text class="tag rose" x={p1 + 80} y="80">base</text>
+      <text class="tag late" x={p1 + 95} y="174">2 commits</text>
+    </g>
+
+    <!-- Panel 3: Push -->
+    <rect class="panel dashed" x={p2} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p2 + 12} y="30">3. Push</text>
+    <text class="muted" x={p2 + 12} y="46">only when you ask</text>
+    <g class="stage">
+      <rect class="remote" x={p2 + 8} y="54" width="134" height="76" rx="6"></rect>
+      <text class="tag end" x={p2 + 134} y="70">origin</text>
+      <text class="tag rose" x={p2 + 31} y="94">base</text>
+      <path class="edge" d={`M${p2 + 20} 72 H${p2 + 80}`}></path>
+      {[20, 50, 80].map((x) => <circle class="dot" cx={p2 + x} cy="72" r="6"></circle>)}
+      <path class="edge own late" d={`M${p2 + 50} 72 L${p2 + 80} 100`}></path>
+      <text class="tag green late" x={p2 + 75} y="122">token-refresh</text>
+
+      <path class="edge own" d={`M${p2 + 80} 160 H${p2 + 110}`}></path>
+      {[80, 110].map((x) => <circle class="dot own" cx={p2 + x} cy="160" r="6"></circle>)}
+      <text class="tag green" x={p2 + 42} y="164">local</text>
+      <path class="push flow" d={`M${p2 + 95} 148 V134`} marker-end="url(#push-flow-head)"></path>
+
+      <g class="rise">
+        <path class="edge own" d={`M${p2 + 80} 100 H${p2 + 110}`}></path>
+        {[80, 110].map((x) => <circle class="dot own" cx={p2 + x} cy="100" r="6"></circle>)}
+      </g>
+    </g>
+
+    <!-- Panel 4: Merge -->
+    <rect class="panel" x={p3} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p3 + 12} y="30">4. Merge</text>
+    <text class="muted" x={p3 + 12} y="46">your pull request</text>
+    <g class="stage">
+      <path class="edge" d={`M${p3 + 16} 100 H${p3 + 76}`}></path>
+      <path class="edge own" d={`M${p3 + 46} 100 L${p3 + 76} 145 H${p3 + 106}`}></path>
+      <g class="late">
+        <path class="edge" d={`M${p3 + 76} 100 H${p3 + 132}`}></path>
+        <path class="edge own" d={`M${p3 + 106} 145 L${p3 + 132} 100`}></path>
+      </g>
+      {[16, 46, 76].map((x) => <circle class="dot" cx={p3 + x} cy="100" r="6"></circle>)}
+      {[76, 106].map((x) => <circle class="dot own" cx={p3 + x} cy="145" r="6"></circle>)}
+      <circle class="dot pop second" cx={p3 + 132} cy="100" r="7"></circle>
+      <text class="tag rose" x={p3 + 76} y="80">base</text>
+      <text class="tag late" x={p3 + 91} y="168">merged</text>
+    </g>
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted {
+    fill: var(--text-muted);
+  }
+
+  .tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--text-muted);
+  }
+
+  .tag.end {
+    text-anchor: end;
+  }
+
+  .tag.rose {
+    fill: var(--c-rose);
+  }
+
+  .tag.green {
+    fill: var(--c-green);
+  }
+
+  .panel {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .panel.dashed {
+    stroke-dasharray: 5 4;
+  }
+
+  .remote {
+    fill: var(--bg-surface);
+    stroke: var(--border);
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+  }
+
+  .edge.own {
+    stroke: var(--c-green);
+  }
+
+  .dot {
+    fill: var(--text-muted);
+  }
+
+  .dot.own {
+    fill: var(--c-green);
+  }
+
+  .scan {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+  }
+
+  .push {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  .head {
+    fill: var(--text-muted);
+  }
+
+  .band {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .band-bar {
+    fill: var(--c-green);
+  }
+
+  .band-text {
+    font-size: 11.5px;
+    fill: var(--text-secondary);
+  }
+
+  /*
+   * The loops. One 5s period for everything: motion between 18% and 46%, the
+   * result held until the stage fades at 90-97%, then it fades back in at the
+   * starting positions. Gated so reduced-motion visitors get the static drawing.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .stage {
+      animation: push-fadecycle 5s ease-in-out infinite;
+    }
+
+    .pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: push-pop 5s ease-in-out infinite;
+    }
+
+    .pop.second {
+      animation-name: push-pop2;
+    }
+
+    .late {
+      animation: push-appear 5s ease-in-out infinite;
+    }
+
+    .rise {
+      animation: push-rise 5s ease-in-out infinite;
+    }
+
+    .push.flow {
+      animation: push-dashflow 0.8s linear infinite;
+    }
+  }
+
+  @keyframes push-fadecycle {
+    0% {
+      opacity: 0;
+    }
+    5%,
+    90% {
+      opacity: 1;
+    }
+    97%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes push-pop {
+    0%,
+    18% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    28%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes push-pop2 {
+    0%,
+    32% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    42%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes push-appear {
+    0%,
+    34% {
+      opacity: 0;
+    }
+    46%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes push-rise {
+    0%,
+    18% {
+      opacity: 0;
+      transform: translateY(60px);
+    }
+    22% {
+      opacity: 1;
+    }
+    40%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes push-dashflow {
+    to {
+      stroke-dashoffset: -7;
+    }
+  }
+</style>

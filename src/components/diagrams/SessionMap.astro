@@ -3,14 +3,14 @@
  * Diagram for the Concepts page: every term of the glossary in one picture.
  *
  * - Members (left): the source repos, which stay where they are. Active
- *   members carry a rose tag naming the landing branch their work lands on;
- *   the reference member is read-only context and has none.
+ *   members carry a rose tag naming the base their branches are built on and
+ *   merge into; the reference member is read-only context and has none.
  * - Package (dashed violet frame): holds the manifest strip (purpose,
  *   context, notes, the overview written by `package init`, and a role per
  *   member) and no worktrees. The strip feeds every session below it.
  * - Sessions (green columns): each holds a worktree of every member, checked
- *   out on the session branch for an active member (cyan) or detached at a
- *   fixed ref for the reference member (amber).
+ *   out on a branch named after the session for an active member (cyan) or
+ *   detached at a fixed ref for the reference member (amber).
  * - The legend repeats the site-wide concept palette as a key.
  *
  * The drawing is plain inline SVG so it follows the light/dark tokens and
@@ -25,17 +25,17 @@
  */
 import Figure from "../Figure.astro";
 
-/** One row per member: its name, mode, the worktree's second line and its landing tag. */
+/** One row per member: its name, mode and its base tag. */
 const rows = [
-  { name: "member-a", kind: "act", note: "active, on the session branch", tag: "lands on main" },
-  { name: "member-b", kind: "act", note: "active, on the session branch", tag: "lands on main" },
-  { name: "member-c", kind: "ref", note: "reference, read-only", tag: "" },
+  { name: "member-a", kind: "act", tag: "base origin/main" },
+  { name: "member-b", kind: "act", tag: "base origin/main" },
+  { name: "member-c", kind: "ref", tag: "" },
 ] as const;
 
-/** The two sessions drawn as columns, with their branch names. */
+/** The two sessions drawn as columns; each names its branches after itself. */
 const sessions = [
-  { name: "token-refresh", branch: "vmono/project/token-refresh", x: 216 },
-  { name: "spike", branch: "vmono/project/spike", x: 480 },
+  { name: "token-refresh", x: 216 },
+  { name: "spike", x: 480 },
 ] as const;
 
 /** The legend: one chip per concept, in the site-wide hue. */
@@ -44,19 +44,18 @@ const legend = [
   { label: "session", hue: "green", x: 120 },
   { label: "active member", hue: "cyan", x: 215 },
   { label: "reference member", hue: "amber", x: 345 },
-  { label: "landing branch", hue: "rose", x: 505 },
+  { label: "base branch", hue: "rose", x: 505 },
 ] as const;
 
 const top = 152;
 const pitch = 64;
-const cellX = [230, 494] as const;
 ---
 
-<Figure caption="Each member's source repo stays where it is. The package holds what you write once; every session adds a worktree of each member, sharing its object storage, and its commits land back on the member's landing branch when it is finished.">
+<Figure caption="Each member's source repo stays where it is. The package holds what you write once; every session adds a worktree of each member, sharing its object storage, with a branch per active member that you push and merge into its base.">
   <svg viewBox="0 0 760 396" role="img" aria-labelledby="session-map-title session-map-desc">
     <title id="session-map-title">Members, a package and its sessions</title>
     <desc id="session-map-desc">
-      Three members, which are source repos, on the left; members a and b have a landing branch and member c is read-only. The package holds a manifest with purpose, context, notes, an overview and a role per member. Its two sessions, token-refresh and spike, each hold a git worktree of every member: members a and b are active and on the session branch, member c is a detached reference.
+      Three members, which are source repos, on the left; members a and b are built on origin/main and member c is read-only. The package holds a manifest with purpose, context, notes, an overview and a role per member. Its two sessions, token-refresh and spike, each hold a git worktree of every member: members a and b are active and on a branch named after the session, member c is a detached reference.
     </desc>
     <defs>
       <marker id="session-map-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
@@ -80,7 +79,7 @@ const cellX = [230, 494] as const;
           <path class="feed" d={`M${s.x + 122} 88 V102`} marker-end="url(#session-map-head)"></path>
           <rect class="session" x={s.x} y="104" width="244" height="240" rx="8"></rect>
           <text class="label green" x={s.x + 14} y="126">session {s.name}</text>
-          <text class="muted" x={s.x + 14} y="141">{s.branch}</text>
+          <text class="muted" x={s.x + 14} y="141">branches named {s.name}</text>
         </>
       ))
     }
@@ -88,8 +87,9 @@ const cellX = [230, 494] as const;
     {
       rows.map((_, i) => (
         <>
-          <path class="link" d={`M170 ${top + i * pitch + 26} H${cellX[1]}`} marker-end="url(#session-map-head)"></path>
-          <path class="link" d={`M170 ${top + i * pitch + 26} H${cellX[0]}`} marker-end="url(#session-map-head)"></path>
+          {[...sessions].reverse().map((s) => (
+            <path class="link" d={`M170 ${top + i * pitch + 26} H${s.x + 14}`} marker-end="url(#session-map-head)"></path>
+          ))}
         </>
       ))
     }
@@ -101,11 +101,11 @@ const cellX = [230, 494] as const;
           <text class="label" x="34" y={top + i * pitch + 19}>{r.name}</text>
           <text class="muted" x="34" y={top + i * pitch + 33}>source repo</text>
           <text class={r.tag ? "rose" : "muted"} x="34" y={top + i * pitch + 46}>{r.tag || "read-only context"}</text>
-          {cellX.map((x) => (
+          {sessions.map((s) => (
             <>
-              <rect class={r.kind} x={x} y={top + i * pitch} width="216" height="52" rx="6"></rect>
-              <text class="label" x={x + 12} y={top + i * pitch + 22}>{r.name}</text>
-              <text class="muted" x={x + 12} y={top + i * pitch + 38}>{r.note}</text>
+              <rect class={r.kind} x={s.x + 14} y={top + i * pitch} width="216" height="52" rx="6"></rect>
+              <text class="label" x={s.x + 26} y={top + i * pitch + 22}>{r.name}</text>
+              <text class="muted" x={s.x + 26} y={top + i * pitch + 38}>{r.kind === "act" ? `active, on ${s.name}` : "reference, read-only"}</text>
             </>
           ))}
         </>

@@ -1,31 +1,44 @@
 ---
 title: Updating a session
-description: Catch a session up with the branches its work lands on, by rebasing or merging, before you finish.
+description: Bring each branch up to date with its base, by rebasing until it is pushed and merging afterward.
 ---
 
-`vmono session update [pkg/session]`, or `u` on the session in the TUI, catches a session up with the branches its work lands on. The sources are fetched, then each active member's own commits are rebased inside the session onto its landing branch or that branch's copy on the remote, whichever is further ahead. A landing branch that does not exist yet stands for the member's base. Only the session branch moves; no branch in a source repo does.
+`vmono session update [pkg/session]`, or `u` on the session in the TUI, fetches the sources and takes in what is new. How each active member is updated depends on whether its branch has been pushed. Your local `main` is neither read nor moved.
 
 <UpdateFlow />
 
+## What happens to each branch
+
+| Branch | What update does |
+| --- | --- |
+| Not pushed | Rebases your commits onto the base. Nobody else has them |
+| Pushed | Merges its remote copy and then the base, fast-forwarding where it can, so pushing again never needs force |
+| Built on another branch with `--from` | Follows that branch; once it has merged, moves to the base, leaving its commits behind |
+| Already merged | Leaves it alone; see [Merging and cleanup](/docs/after-merging) |
+| Remote branch deleted | Skips it |
+| Its history, or the remote copy's, was rewritten | Skips it: merging would bring the old commits back |
+
+Updating never rewrites commits that have been pushed.
+
 ## Members are independent
 
-One with uncommitted changes is skipped, and so is one whose landing branch and its remote copy have diverged, because rebasing onto one side could drop the other.
+One with uncommitted changes is skipped when there is something to take in. So is one whose worktree is missing, on another branch, or in the middle of a rebase, each with the reason.
 
-`--merge` merges both sides into the session for those members instead. [Finishing](/docs/finishing-a-session) then fast-forwards the landing branch, and pushing it is a fast-forward again, at the cost of a merge commit that lands with the work. If the landing branch moves before you finish, `finish` blocks that member rather than duplicate upstream commits; run the update with `--merge` again.
-
-A rebase or merge that conflicts is aborted, so that member stays exactly as it was, and the reason names the files.
+A rebase or merge that conflicts is aborted, so that member stays exactly as it was, and the reason names the files and the commands to resolve it. Run them in the member's worktree, then update again. In the TUI, a failed update offers to launch the harness in the session to resolve it.
 
 ## Flags and exit code
 
 | Flag | Does |
 | --- | --- |
 | `--member NAME` | Update only this member (repeatable) |
-| `--merge` | Merge both sides of a landing branch that has diverged from its remote copy |
 | `--no-fetch` | Use the refs already on disk. A fetch that fails only warns |
-| `--dry-run` | Show what would be updated without moving any branch |
+| `--dry-run` | Fetch, then show what would be updated without moving any branch |
+| `--json` | Print the result per member |
 
 The command exits `2` when any member was skipped or conflicted.
 
-An update rewrites the session branch, so do it while no agent is in the middle of a change. In the TUI, updating a session whose agent is working asks for `u` a second time.
+## While an agent is working
 
-The vmono skill teaches the agent to run an update when you ask for one, and to ask you before it merges a landing branch that has diverged.
+An update can rewrite or add to a branch, so do it while no agent is in the middle of a change. In the TUI, updating a session whose agent is working asks for `u` a second time. If you never run it, conflicts with the base just show up on the pull request.
+
+The vmono skill teaches the agent to run an update when you ask for one, or when a push is blocked because a branch diverged. Where history was rewritten, it explains and asks you first; it never resets or force-pushes on its own.

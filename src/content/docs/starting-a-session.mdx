@@ -1,0 +1,57 @@
+---
+title: Starting a session
+description: Give each piece of work a worktree of every member, each active one on a branch you can push.
+---
+
+`vmono session new [pkg] <name>`, or `n` on the sessions view in the TUI, starts a session. Every active member gets a worktree on a branch, and that branch is the result: it is what you [push](/docs/pushing-a-session), and what you open a pull request from. It starts from the member's base (`origin/main`, usually), whatever its source repo has checked out, and tracks nothing until it is pushed.
+
+```sh
+vmono session new payments token-refresh                  # every member on token-refresh
+vmono session new payments token-refresh --prefix feat    # on feat/token-refresh
+vmono session new payments review --track api=fix/login   # api on a branch that is already on the remote
+```
+
+## Choosing branches
+
+| To | Pass |
+| --- | --- |
+| Name branches after the session | nothing: session `token-refresh` works on `token-refresh` |
+| Put a prefix in front | `--prefix feat`: `feat/token-refresh` |
+| Choose the name | `--branch fix/PLAT-412`, or `--branch MEMBER=B` for one member (repeatable) |
+| Work on a branch that is on the remote, such as a teammate's or an open pull request's | `--track BRANCH` or `--track MEMBER=BRANCH` |
+| Build on something other than the base | `--from REF` or `--from MEMBER=REF` |
+| Take up a local branch that already exists | `--reuse-branch` |
+
+`vmono new` takes the same flags along with `--session`, to start the first session as it defines the package. A prefix belongs to the default name, so it cannot be combined with `--branch` for every member.
+
+## Working on a remote branch
+
+`--track` fetches, then checks out the branch itself, tracking the remote one. A local copy is brought up to it when it is only behind. A member whose remote lacks the branch gets a new one of that name, with a warning. Naming the member makes that an error, and so does a branch that no member's remote has (exit `3`).
+
+A branch that is checked out elsewhere, your source repo included, cannot be in a session at the same time, so switch the source to another branch first.
+
+## Building on unmerged work
+
+`--from` is for work stacked on a branch that has not merged. The session remembers it, measures your commits against it, and [follows it on update](/docs/updating-a-session). A member that has nothing by that name starts from its base, with a warning. Naming the member makes that an error, and so does a name that no member has.
+
+`--track` and `--from` cannot both apply to the same member, since a tracked branch starts where it is.
+
+## Names that are refused
+
+A branch name is refused if:
+
+- it is the branch the work merges into,
+- it already exists locally, unless you pass `--reuse-branch` (the TUI asks instead), or
+- it is already on the member's remote, where a push would meet someone else's work. Use `--track` to work on it.
+
+Git also cannot hold both `feat` and `feat/spike`, and vmono says so rather than renaming either. Two packages that share a repo cannot have a session branch of the same name checked out at once; a prefix keeps them apart.
+
+## From the TUI
+
+The new-session prompt asks for a name, and optionally a prefix, a branch, a remote branch to work on (`track`) or to build on (`from`), and a branch for each active member. Empty fields show the branch they will use.
+
+`space` or `enter` on `track` or `from` opens a picker of the members' remote branches, and `ctrl+t` opens the one for `track` from any field. The picker lists what the last fetch saw while it fetches, so it works offline too.
+
+## Next
+
+Each new worktree can [install its dependencies](/docs/setup-and-hooks) as the session is created. When there are commits, [push the session](/docs/pushing-a-session).

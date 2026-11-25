@@ -29,7 +29,7 @@ Add `src/content/docs/<name>.mdx` with `title` and `description`, then list `<na
 
 ## Color
 
-Color carries meaning. Package is violet, session is green, active member is cyan, reference member is amber and landing branch is rose (`--c-*` in `tokens.css`), and the landing page, the Concepts table and `Term` all use those. Each sidebar group also has a hue, set in `src/lib/nav.ts`, which tints its sidebar marker, the kicker above the page title, the TOC and the pager.
+Color carries meaning. Package is violet, session is green, active member is cyan, reference member is amber and base branch is rose (`--c-*` in `tokens.css`), and the landing page, the Concepts table and `Term` all use those. Each sidebar group also has a hue, set in `src/lib/nav.ts`, which tints its sidebar marker, the kicker above the page title, the TOC and the pager.
 
 Links between pages are written as absolute paths (`/docs/install`). If the site is ever served from a sub-path, set `base` in `astro.config.mjs` and update those links.
 

@@ -1,6 +1,6 @@
 ---
 title: Concepts
-description: Packages, sessions, members and landing branches, and how they lay out on disk.
+description: Packages, sessions, members and branches, and how they lay out on disk.
 ---
 
 <SessionMap />
@@ -8,11 +8,11 @@ description: Packages, sessions, members and landing branches, and how they lay 
 | Term | Meaning |
 | --- | --- |
 | <Term kind="package">Package</Term> | A definition under the package root (default `~/.vmono`): the members, a purpose, context, notes and a role per member. It has its own small git repo, and holds no worktrees. |
-| <Term kind="session">Session</Term> | One piece of work on a package: a directory with its own branch, its own git repo, and a worktree of every member. It is what a harness opens. A package has any number of them side by side. |
+| <Term kind="session">Session</Term> | One piece of work on a package: a directory with its own git repo and a worktree of every member, each active one on a branch. It is what a harness opens. A package has any number of them side by side. |
 | Member | A source repo included in a package. Every session has a worktree of every member. |
-| <Term kind="active">Active member</Term> | Checked out on the session branch (default `vmono/<package>/<session>`). The agent may edit it and commit to it. |
+| <Term kind="active">Active member</Term> | Checked out on a branch, named after the session unless you say otherwise. The agent may edit it and commit to it, and you [push it](/docs/pushing-a-session). |
 | <Term kind="reference">Reference member</Term> | Checked out detached at a fixed ref under `_ref/`. Read-only context. |
-| <Term kind="landing">Landing branch</Term> | The branch in a member's source repo that the session's work lands on when it is finished. Each member has its own, recorded in the session when it is created: by default the branch that member's source repo has checked out. |
+| <Term kind="base">Base</Term> | What a member's branch is built on and merges into: the `base` in the package manifest (default `origin/HEAD`), or what a session names with [`--from`](/docs/starting-a-session#building-on-unmerged-work). |
 | Overview | What an agent learned by exploring the members, recorded by [`vmono package init`](/docs/package-init). Kept apart from the text you write. |
 | Purpose / Context / Notes / Role | Free text that belongs to the package: what the work is, what to know, a dated log, and what each member contributes. Sessions share it; they have none of their own. |
 
@@ -25,20 +25,22 @@ A package with two sessions looks like this:
 ├── .vmono/manifest.toml     source of truth for the package
 ├── .git/  .gitignore        the package's own repo: tracks only .vmono/
 ├── token-refresh/           a session: what the harness opens
-│   ├── .vmono/session.toml  name, package, branch
+│   ├── .vmono/session.toml  name, package, branches
 │   ├── .git/                the session's own repo (one harness project per session)
 │   ├── AGENTS.md            generated block + your own notes
 │   ├── CLAUDE.md            generated: @AGENTS.md
 │   ├── .claude/             generated: settings.json, skills/vmono (the Claude Code plugin)
 │   ├── .agents/             generated: skills/vmono, for Codex and Pi
 │   ├── opencode.json        generated
-│   ├── member-a/            active member (worktree on vmono/project/token-refresh)
+│   ├── member-a/            active member (worktree on token-refresh)
 │   └── _ref/member-c/       reference member (detached worktree)
-└── spike/                   another session, with its own branch and worktrees
+└── spike/                   another session, with its own branches and worktrees
 ```
 
 Everything except the manifest, the session file and your own text in `AGENTS.md` (outside the `<!-- vmono:begin -->` / `<!-- vmono:end -->` markers) is rebuilt from the manifest. Changing the package (a note, a new member, an edit) applies to every session. Task details that belong to one piece of work stay in the harness conversation, and the vmono skill tells the agent to write to the package only what every future session will need. Packages and sessions cannot be renamed: harness session history is keyed by path.
 
-## Branch names
+## Branches
 
-A branch can be checked out in only one worktree at a time, and git cannot hold both `vmono/project` and `vmono/project/spike`, which is why session branches include the package name. If a branch name in the way already exists, vmono says so and suggests `--branch`; it never renames branches.
+A member's branch is the session's name, after a `--prefix` if you give one, or whatever you pass with `--branch` or `--track`. It is the branch you push, so the name is public. A branch can be checked out in only one worktree at a time, and git cannot hold both `feat` and `feat/spike`. If a name in the way already exists, locally or on the remote, vmono says so; it never renames branches.
+
+A session's life is [start](/docs/starting-a-session), work, [push](/docs/pushing-a-session), then [remove](/docs/after-merging#removing-a-session) once its pull requests merge, with an [update](/docs/updating-a-session) whenever you need one.

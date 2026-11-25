@@ -34,6 +34,12 @@ The script downloads the archive for your OS and CPU from the latest [release](h
 
 To uninstall, delete the `vmono` binary (and, on Windows, its folder from your `PATH`; the PowerShell commands are under [From source](#from-source) below). To check what you have, run `vmono --version`.
 
+Releases from `v0.1.0` are immutable, and GitHub signs an attestation of their files. To check an archive you downloaded yourself, use the [GitHub CLI](https://cli.github.com):
+
+```sh
+gh release verify-asset v0.1.0 vmono_linux_amd64.tar.gz --repo doneill612/vmono
+```
+
 <Callout>
 A tarball downloaded in a browser on macOS is quarantined by Gatekeeper; clear it with `xattr -d com.apple.quarantine vmono`. The install script doesn't need this.
 </Callout>

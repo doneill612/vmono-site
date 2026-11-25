@@ -1,6 +1,6 @@
 ---
 title: Quick start
-description: Define a package, start a session, and open it in your coding harness.
+description: Define a package, start a session, open it in your coding harness, and push the result.
 ---
 
 ## With the TUI
@@ -25,6 +25,18 @@ Add `eval "$(vmono shell-init zsh)"` (or `bash`, `fish`, `pwsh`) to your shell r
 
 ## What just happened
 
-`vmono new` defined a package called `project` with two active members and one reference member, and started its first session, `token-refresh`. That session is a directory with a git worktree of every member on a new branch; `vmono open` launched your default harness inside it. `vmono session new` started a second session on the same repos without setting up the members again.
+`vmono new` defined a package called `project` with two active members and one reference member, and started its first session, `token-refresh`. That session is a directory with a git worktree of every member, the active ones on a new branch called `token-refresh`; `vmono open` launched your default harness inside it. `vmono session new` started a second session on the same repos without setting up the members again.
+
+## When the work is done
+
+Commit in each member, then publish the branches and open pull requests from them:
+
+```sh
+vmono session review project/token-refresh   # what a push would do; changes nothing
+vmono session push project/token-refresh
+vmono session rm project/token-refresh       # once the pull requests merge
+```
+
+Nothing is pushed unless you ask, and removing a session keeps any branch that holds commits. See [Pushing a session](/docs/pushing-a-session) and [Merging and cleanup](/docs/after-merging).
 
 See [Concepts](/docs/concepts) for the terms and the on-disk layout, and [Commands](/docs/commands) for every flag.
