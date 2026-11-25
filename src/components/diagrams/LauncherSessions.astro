@@ -252,32 +252,32 @@ const id = `launcher-sessions-${kind}`;
    */
   @media (prefers-reduced-motion: no-preference) {
     .stage {
-      animation: fadecycle 5s ease-in-out infinite;
+      animation: launcher-fadecycle 5s ease-in-out infinite;
     }
 
     .sel {
-      animation: selmove 5s ease-in-out infinite;
+      animation: launcher-selmove 5s ease-in-out infinite;
     }
 
     .launch {
-      animation: launch 5s ease-in-out infinite;
+      animation: launcher-launch 5s ease-in-out infinite;
     }
 
     .link.go {
       stroke-dasharray: 5 4;
-      animation: dashflow 0.9s linear infinite;
+      animation: launcher-dashflow 0.9s linear infinite;
     }
 
     .focus-from {
-      animation: focusout 5s ease-in-out infinite;
+      animation: launcher-focusout 5s ease-in-out infinite;
     }
 
     .focus-to {
-      animation: focusin 5s ease-in-out infinite;
+      animation: launcher-focusin 5s ease-in-out infinite;
     }
   }
 
-  @keyframes fadecycle {
+  @keyframes launcher-fadecycle {
     0% {
       opacity: 0;
     }
@@ -291,7 +291,7 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes selmove {
+  @keyframes launcher-selmove {
     0%,
     18% {
       transform: translateY(-58px);
@@ -302,7 +302,7 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes launch {
+  @keyframes launcher-launch {
     0%,
     34% {
       opacity: 0;
@@ -313,7 +313,7 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes focusout {
+  @keyframes launcher-focusout {
     0%,
     40% {
       opacity: 1;
@@ -324,7 +324,7 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes focusin {
+  @keyframes launcher-focusin {
     0%,
     44% {
       opacity: 0;
@@ -335,7 +335,7 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes dashflow {
+  @keyframes launcher-dashflow {
     to {
       stroke-dashoffset: -9;
     }

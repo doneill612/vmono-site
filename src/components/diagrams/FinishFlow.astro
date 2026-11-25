@@ -226,49 +226,49 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
    */
   @media (prefers-reduced-motion: no-preference) {
     .stage {
-      animation: fadecycle 5s ease-in-out infinite;
+      animation: finish-fadecycle 5s ease-in-out infinite;
     }
 
     .appear {
-      animation: appear 5s ease-in-out infinite;
+      animation: finish-appear 5s ease-in-out infinite;
     }
 
     .pop {
       transform-box: fill-box;
       transform-origin: center;
-      animation: pop 5s ease-in-out infinite;
+      animation: finish-pop 5s ease-in-out infinite;
     }
 
     .labelmove {
-      animation: labelmove 5s ease-in-out infinite;
+      animation: finish-labelmove 5s ease-in-out infinite;
     }
 
     .slide {
-      animation: slide 5s ease-in-out infinite;
+      animation: finish-slide 5s ease-in-out infinite;
     }
 
     .rise {
-      animation: rise 5s ease-in-out infinite;
+      animation: finish-rise 5s ease-in-out infinite;
     }
 
     .ghost {
-      animation: ghost 5s ease-in-out infinite;
+      animation: finish-ghost 5s ease-in-out infinite;
     }
 
     .late {
-      animation: appear2 5s ease-in-out infinite;
+      animation: finish-appear2 5s ease-in-out infinite;
     }
 
     .shift {
-      animation: shift 5s ease-in-out infinite;
+      animation: finish-shift 5s ease-in-out infinite;
     }
 
     .push.flow {
-      animation: dashflow 0.8s linear infinite;
+      animation: finish-dashflow 0.8s linear infinite;
     }
   }
 
-  @keyframes fadecycle {
+  @keyframes finish-fadecycle {
     0% {
       opacity: 0;
     }
@@ -282,7 +282,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes appear {
+  @keyframes finish-appear {
     0%,
     18% {
       opacity: 0;
@@ -293,7 +293,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes pop {
+  @keyframes finish-pop {
     0%,
     18% {
       opacity: 0;
@@ -306,7 +306,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes labelmove {
+  @keyframes finish-labelmove {
     0%,
     18% {
       transform: translateX(-30px);
@@ -317,7 +317,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes slide {
+  @keyframes finish-slide {
     0%,
     18% {
       transform: translateX(-30px);
@@ -328,7 +328,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes rise {
+  @keyframes finish-rise {
     0%,
     18% {
       transform: translateY(45px);
@@ -339,7 +339,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes ghost {
+  @keyframes finish-ghost {
     0%,
     22% {
       opacity: 1;
@@ -350,7 +350,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes appear2 {
+  @keyframes finish-appear2 {
     0%,
     34% {
       opacity: 0;
@@ -361,7 +361,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes shift {
+  @keyframes finish-shift {
     0%,
     30% {
       transform: none;
@@ -372,7 +372,7 @@ const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
     }
   }
 
-  @keyframes dashflow {
+  @keyframes finish-dashflow {
     to {
       stroke-dashoffset: -7;
     }

@@ -7,6 +7,12 @@
  * scrolls sideways on narrow screens instead of shrinking the drawing. The
  * SVGs color themselves from the site tokens (`--c-*`, `--text-*`), so the
  * frame needs no theme logic of its own.
+ *
+ * Diagram animations: Astro scopes class selectors per component but NOT
+ * `@keyframes` names, and every diagram's CSS ships on every docs page, so two
+ * diagrams that both define `@keyframes slide` silently override each other.
+ * Prefix every keyframe name with the component (`finish-slide`,
+ * `update-slide`).
  */
 interface Props {
   /** Plain-text explanation shown under the drawing. */

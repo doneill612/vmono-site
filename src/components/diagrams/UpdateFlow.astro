@@ -208,29 +208,29 @@ const [p0, p1, p2] = [20, 265, 510] as const;
    */
   @media (prefers-reduced-motion: no-preference) {
     .stage {
-      animation: fadecycle 5s ease-in-out infinite;
+      animation: update-fadecycle 5s ease-in-out infinite;
     }
 
     .slide {
-      animation: slide 5s ease-in-out infinite;
+      animation: update-slide 5s ease-in-out infinite;
     }
 
     .ghost {
-      animation: ghost 5s ease-in-out infinite;
+      animation: update-ghost 5s ease-in-out infinite;
     }
 
     .late {
-      animation: appear 5s ease-in-out infinite;
+      animation: update-appear 5s ease-in-out infinite;
     }
 
     .pop {
       transform-box: fill-box;
       transform-origin: center;
-      animation: pop 5s ease-in-out infinite;
+      animation: update-pop 5s ease-in-out infinite;
     }
   }
 
-  @keyframes fadecycle {
+  @keyframes update-fadecycle {
     0% {
       opacity: 0;
     }
@@ -244,7 +244,7 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     }
   }
 
-  @keyframes slide {
+  @keyframes update-slide {
     0%,
     18% {
       transform: translate(-60px, 45px);
@@ -255,7 +255,7 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     }
   }
 
-  @keyframes ghost {
+  @keyframes update-ghost {
     0%,
     22% {
       opacity: 1;
@@ -266,7 +266,7 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     }
   }
 
-  @keyframes appear {
+  @keyframes update-appear {
     0%,
     24% {
       opacity: 0;
@@ -277,7 +277,7 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     }
   }
 
-  @keyframes pop {
+  @keyframes update-pop {
     0%,
     18% {
       opacity: 0;

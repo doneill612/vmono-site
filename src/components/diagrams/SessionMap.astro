@@ -157,7 +157,7 @@ const cellX = [230, 494] as const;
     stroke: var(--c-violet);
     stroke-width: 1.5;
     stroke-dasharray: 5 4;
-    animation: march 1.6s linear infinite;
+    animation: sessionmap-march 1.6s linear infinite;
   }
 
   .manifest {
@@ -196,7 +196,7 @@ const cellX = [230, 494] as const;
     stroke: var(--text-muted);
     stroke-width: 1.5;
     stroke-dasharray: 6 5;
-    animation: flow 0.9s linear infinite;
+    animation: sessionmap-flow 0.9s linear infinite;
   }
 
   .head {
@@ -223,13 +223,13 @@ const cellX = [230, 494] as const;
     fill: var(--c-rose);
   }
 
-  @keyframes flow {
+  @keyframes sessionmap-flow {
     to {
       stroke-dashoffset: -11;
     }
   }
 
-  @keyframes march {
+  @keyframes sessionmap-march {
     to {
       stroke-dashoffset: -18;
     }
