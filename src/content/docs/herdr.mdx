@@ -33,7 +33,7 @@ Under herdr, the TUI's sessions view has an `agent` column that says what each a
 
 ## Details
 
-- [Initializing a package](/docs/package-init) runs in a place of its own, `package/.init`.
+- [Initializing a package](/docs/package-init) runs in a place of its own, `package/.init`. When the agent has suggested commands, a notification says they will be there to review.
 - vmono finds its workspaces by a token it sets on each one, so renaming a workspace does not lose it. A herdr restart drops the tokens; after one, workspaces are found by label and directory instead.
 - Checked against herdr 0.9.5. Not supported on Windows.
 - `launcher` decides where a harness starts. See [The launcher setting](/docs/configuration#launcher).

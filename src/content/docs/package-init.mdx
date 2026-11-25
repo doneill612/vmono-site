@@ -18,6 +18,14 @@ Your own purpose, roles, context and notes are never changed. The agent then sho
 
 When members are added or removed afterward, `vmono show` and the TUI say the overview is out of date. Edit it with `vmono describe --overview`; an empty one removes it.
 
+## Suggested commands
+
+The agent may also suggest [`setup` and `teardown` commands](/docs/setup-and-hooks) for members, such as `pnpm install` where there is a `pnpm-lock.yaml`. Suggesting runs nothing. When the harness exits, vmono goes straight into a review that shows each command, when it would run, and the file it came from: `a` accepts, `e` edits first, `x` dismisses, `A` accepts all when they all show, and `q` leaves the rest for later.
+
+An accepted command is added after the member's own and runs in worktrees created or removed from then on. A settled suggestion is not offered again. Agents cannot accept or dismiss, because these commands run as you and outside the harness's sandbox.
+
+Return to a review with `v` on the package in the TUI or `vmono package suggestions [pkg] --review`. Without `--review` the command lists what is pending, and `--accept` and `--dismiss` take ids from that list. Inside herdr, a notification says there will be something to review as soon as the agent has recorded suggestions.
+
 ## Read-only, and what is left behind
 
 The exploration is read-only in layers. Claude Code and OpenCode get rules that deny edits, commits and pushes, Codex runs in its read-only sandbox, and Pi gets no edit tools. Members' own `ask` and `deny` rules apply; their `allow` rules, hooks and skills do not. None of this confines shell commands the agent is allowed to run, so it also matters that the worktrees are throwaway: they are on no branch, and no edit in them reaches a source repo's working tree.
