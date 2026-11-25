@@ -16,6 +16,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono session ls [pkg]` | List a package's sessions and whether each is finished |
 | `vmono session update [pkg/session] [--member NAME]... [--merge] [--no-fetch] [--dry-run]` | Fetch, then rebase the session's commits onto the latest of each member's landing branch. See [Updating a session](/docs/updating-a-session) |
 | `vmono session finish [pkg/session] [--into [MEMBER=]B]... [--close] [--dry-run]` | Land the session's commits on each member's branch in its source repo. Nothing is pushed; see [Finishing a session](/docs/finishing-a-session) |
+| `vmono session review [pkg/session] [--into [MEMBER=]B]... [--json]` | Show what finishing would land, changing nothing (the read-only form of `session finish`); see [Finishing a session](/docs/finishing-a-session#when-it-refuses) |
 | `vmono session push [pkg/session] [--member NAME]... [--dry-run] [--json]` | Push a finished session's landing branches to their remotes, never forced; see [Pushing](/docs/finishing-a-session#pushing) |
 | `vmono session rm <pkg>/<session> [--force] [--delete-branches]` | Remove a session; the package and its other sessions stay |
 | `vmono add [pkg] <repo> [--ref] [--role R]` | Add a member to the package, and so to every session (a known repo name or any path) |
