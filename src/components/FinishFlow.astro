@@ -13,61 +13,29 @@
  *
  * Under the graphs, a band states the all-or-nothing gate. Plain inline SVG in
  * a 760x256 viewBox, colored from the site tokens like the other diagrams.
+ *
+ * The markup is the finished, static state. Every panel is visible from the
+ * first paint and loops on its own, so a reader skimming past sees all four
+ * steps move without waiting for a sequence. Each panel's graph sits in a
+ * `.stage` group that fades in and out once per cycle, and a few elements
+ * inside it move between where the previous step left them and where this
+ * step puts them:
+ *
+ * - Start: the landing branch moves on (a new commit appears, its label moves).
+ * - Rebase: the session commits slide from the fork point onto the new tip.
+ * - Land: they rise onto the landing branch (the diagonal edge fades) and the
+ *   landing label moves to the new tip.
+ * - Push: `origin/main` moves to the new tip while the dashed arrow flows.
+ *
+ * All the loops share one 5s period so the keyframe percentages line up: the
+ * motion happens between 18% and 40%, then the result holds until the fade.
+ * The animation rules are inside a `prefers-reduced-motion: no-preference`
+ * query; reduced-motion visitors see the static drawing.
  */
 import Figure from "./Figure.astro";
 
-/** A commit dot: `x` and `y` are panel-relative; `own` marks a session commit. */
-type Dot = { x: number; y: number; own?: boolean };
-
-/**
- * The four panels. `trunk` and `branch` are the commits on the main row and
- * on the lower session row; `fork` is the trunk index the session row hangs
- * from (omitted when the session row is empty). `landing` and `session` are
- * the x of the commit each branch label points at.
- */
-const panels = [
-  {
-    title: "Start",
-    sub: "forked earlier",
-    trunk: [{ x: 20, y: 100 }, { x: 50, y: 100 }, { x: 80, y: 100 }] as Dot[],
-    branch: [{ x: 80, y: 145, own: true }, { x: 110, y: 145, own: true }] as Dot[],
-    fork: 1,
-    landing: 80,
-    session: 110,
-    sessionY: 168,
-  },
-  {
-    title: "1. Rebase",
-    sub: "session worktree",
-    trunk: [{ x: 20, y: 100 }, { x: 50, y: 100 }, { x: 80, y: 100 }] as Dot[],
-    branch: [{ x: 110, y: 145, own: true }, { x: 140, y: 145, own: true }] as Dot[],
-    fork: 2,
-    landing: 80,
-    session: 140,
-    sessionY: 168,
-  },
-  {
-    title: "2. Land",
-    sub: "source repo",
-    trunk: [
-      { x: 20, y: 100 },
-      { x: 50, y: 100 },
-      { x: 80, y: 100 },
-      { x: 110, y: 100, own: true },
-      { x: 140, y: 100, own: true },
-    ] as Dot[],
-    branch: [] as Dot[],
-    fork: 0,
-    landing: 140,
-    session: 140,
-    sessionY: 124,
-  },
-] as const;
-
-const origins = [20, 210, 400] as const;
-
-/** Push panel: five commits on one row, spaced tighter than the others. */
-const pushDots: Dot[] = [16, 40, 64, 88, 112].map((x, i) => ({ x, y: 100, own: i > 2 }));
+/** Panel x origins: Start, Rebase, Land, Push. Each panel is 150 wide. */
+const [p0, p1, p2, p3] = [20, 210, 400, 590] as const;
 ---
 
 <Figure caption="finish rebases the session's commits onto the landing branch, then moves the landing branch to the result. Pushing is a separate step you ask for.">
@@ -82,54 +50,74 @@ const pushDots: Dot[] = [16, 40, 64, 88, 112].map((x, i) => ({ x, y: 100, own: i
       </marker>
     </defs>
 
-    {
-      panels.map((p, i) => {
-        const x0 = origins[i];
-        const forkDot = p.trunk[p.fork];
-        const first = p.branch[0];
-        return (
-          <>
-            <rect class="panel" x={x0} y="8" width="150" height="178" rx="8"></rect>
-            <text class="title" x={x0 + 12} y="30">{p.title}</text>
-            <text class="muted" x={x0 + 12} y="46">{p.sub}</text>
-
-            <path class="edge" d={`M${x0 + p.trunk[0].x} 100 H${x0 + p.trunk[p.trunk.length - 1].x}`}></path>
-            {first && (
-              <path
-                class="edge own"
-                d={`M${x0 + forkDot.x} ${forkDot.y} L${x0 + first.x} ${first.y} H${x0 + p.branch[p.branch.length - 1].x}`}
-              ></path>
-            )}
-            {[...p.trunk, ...p.branch].map((d) => (
-              <circle class={d.own ? "dot own" : "dot"} cx={x0 + d.x} cy={d.y} r="6"></circle>
-            ))}
-
-            <text class={p.landing > 118 ? "tag rose end" : "tag rose"} x={x0 + Math.min(p.landing, 146)} y="80">landing</text>
-            <text class={p.session > 118 ? "tag green end" : "tag green"} x={x0 + Math.min(p.session, 146)} y={p.sessionY}>session</text>
-          </>
-        );
-      })
-    }
-
-    <rect class="panel dashed" x="590" y="8" width="150" height="178" rx="8"></rect>
-    <text class="title" x="602" y="30">3. Push</text>
-    <text class="muted" x="602" y="46">only when you ask</text>
-    <path class="edge" d="M606 100 H702"></path>
-    {pushDots.map((d) => <circle class={d.own ? "dot own" : "dot"} cx={590 + d.x} cy={d.y} r="6"></circle>)}
-    <text class="tag rose" x="702" y="80">landing</text>
-    <text class="tag" x="654" y="124">origin/main</text>
-    <path class="push" d="M654 140 H702" marker-end="url(#finish-flow-head)"></path>
-    <text class="tag" x="678" y="162">push</text>
-
-    {
-      [172, 362, 552].map((x) => (
-        <path class="link" d={`M${x} 100 H${x + 30}`} marker-end="url(#finish-flow-head)"></path>
-      ))
-    }
-
     <rect class="gate" x="20" y="202" width="720" height="40" rx="8"></rect>
     <rect class="gate-bar" x="20" y="202" width="4" height="40" rx="2"></rect>
     <text class="gate-text" x="40" y="226">Nothing moves unless every member can land: if one cannot, finish exits 2 and changes nothing.</text>
+
+    <path class="link" d="M172 100 H202" marker-end="url(#finish-flow-head)"></path>
+    <path class="link" d="M362 100 H392" marker-end="url(#finish-flow-head)"></path>
+    <path class="link" d="M552 100 H582" marker-end="url(#finish-flow-head)"></path>
+
+    <!-- Panel 1: Start -->
+    <rect class="panel" x={p0} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p0 + 12} y="30">Start</text>
+    <text class="muted" x={p0 + 12} y="46">forked earlier</text>
+    <g class="stage">
+      <path class="edge" d={`M${p0 + 20} 100 H${p0 + 50}`}></path>
+      <path class="edge appear" d={`M${p0 + 50} 100 H${p0 + 80}`}></path>
+      <path class="edge own" d={`M${p0 + 50} 100 L${p0 + 80} 145 H${p0 + 110}`}></path>
+      {[20, 50].map((x) => <circle class="dot" cx={p0 + x} cy="100" r="6"></circle>)}
+      <circle class="dot pop" cx={p0 + 80} cy="100" r="6"></circle>
+      {[80, 110].map((x) => <circle class="dot own" cx={p0 + x} cy="145" r="6"></circle>)}
+      <text class="tag rose labelmove" x={p0 + 80} y="80">landing</text>
+      <text class="tag green" x={p0 + 110} y="168">session</text>
+    </g>
+
+    <!-- Panel 2: Rebase -->
+    <rect class="panel" x={p1} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p1 + 12} y="30">1. Rebase</text>
+    <text class="muted" x={p1 + 12} y="46">session worktree</text>
+    <g class="stage">
+      <path class="edge" d={`M${p1 + 20} 100 H${p1 + 80}`}></path>
+      {[20, 50, 80].map((x) => <circle class="dot" cx={p1 + x} cy="100" r="6"></circle>)}
+      <text class="tag rose" x={p1 + 80} y="80">landing</text>
+      <g class="slide">
+        <path class="edge own" d={`M${p1 + 80} 100 L${p1 + 110} 145 H${p1 + 140}`}></path>
+        {[110, 140].map((x) => <circle class="dot own" cx={p1 + x} cy="145" r="6"></circle>)}
+        <text class="tag green end" x={p1 + 140} y="168">session</text>
+      </g>
+    </g>
+
+    <!-- Panel 3: Land -->
+    <rect class="panel" x={p2} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p2 + 12} y="30">2. Land</text>
+    <text class="muted" x={p2 + 12} y="46">source repo</text>
+    <g class="stage">
+      <path class="edge" d={`M${p2 + 20} 100 H${p2 + 80}`}></path>
+      <path class="edge own ghost" d={`M${p2 + 80} 100 L${p2 + 110} 145 H${p2 + 140}`}></path>
+      <path class="edge late" d={`M${p2 + 80} 100 H${p2 + 140}`}></path>
+      {[20, 50, 80].map((x) => <circle class="dot" cx={p2 + x} cy="100" r="6"></circle>)}
+      <g class="rise">
+        {[110, 140].map((x) => <circle class="dot own" cx={p2 + x} cy="100" r="6"></circle>)}
+      </g>
+      <text class="tag rose ghost" x={p2 + 80} y="80">landing</text>
+      <text class="tag rose end late" x={p2 + 140} y="80">landing</text>
+      <text class="tag green end late" x={p2 + 140} y="124">session</text>
+    </g>
+
+    <!-- Panel 4: Push -->
+    <rect class="panel dashed" x={p3} y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x={p3 + 12} y="30">3. Push</text>
+    <text class="muted" x={p3 + 12} y="46">only when you ask</text>
+    <g class="stage">
+      <path class="edge" d={`M${p3 + 16} 100 H${p3 + 112}`}></path>
+      {[16, 40, 64].map((x) => <circle class="dot" cx={p3 + x} cy="100" r="6"></circle>)}
+      {[88, 112].map((x) => <circle class="dot own" cx={p3 + x} cy="100" r="6"></circle>)}
+      <text class="tag rose" x={p3 + 112} y="80">landing</text>
+      <path class="push flow" d={`M${p3 + 64} 140 H${p3 + 112}`} marker-end="url(#finish-flow-head)"></path>
+      <text class="tag" x={p3 + 88} y="162">push</text>
+      <text class="tag shift" x={p3 + 64} y="124">origin/main</text>
+    </g>
   </svg>
 </Figure>
 
@@ -224,5 +212,169 @@ const pushDots: Dot[] = [16, 40, 64, 88, 112].map((x, i) => ({ x, y: 100, own: i
   .gate-text {
     font-size: 11.5px;
     fill: var(--text-secondary);
+  }
+
+  /* Elements that exist only while the animation runs. */
+  .ghost {
+    opacity: 0;
+  }
+
+  /*
+   * The loops. One 5s period for everything: motion between 18% and 40%, the
+   * result held until the stage fades at 90-97%, then it fades back in at the
+   * starting positions. Gated so reduced-motion visitors get the static drawing.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .stage {
+      animation: fadecycle 5s ease-in-out infinite;
+    }
+
+    .appear {
+      animation: appear 5s ease-in-out infinite;
+    }
+
+    .pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: pop 5s ease-in-out infinite;
+    }
+
+    .labelmove {
+      animation: labelmove 5s ease-in-out infinite;
+    }
+
+    .slide {
+      animation: slide 5s ease-in-out infinite;
+    }
+
+    .rise {
+      animation: rise 5s ease-in-out infinite;
+    }
+
+    .ghost {
+      animation: ghost 5s ease-in-out infinite;
+    }
+
+    .late {
+      animation: appear2 5s ease-in-out infinite;
+    }
+
+    .shift {
+      animation: shift 5s ease-in-out infinite;
+    }
+
+    .push.flow {
+      animation: dashflow 0.8s linear infinite;
+    }
+  }
+
+  @keyframes fadecycle {
+    0% {
+      opacity: 0;
+    }
+    5%,
+    90% {
+      opacity: 1;
+    }
+    97%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes appear {
+    0%,
+    18% {
+      opacity: 0;
+    }
+    30%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pop {
+    0%,
+    18% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    30%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes labelmove {
+    0%,
+    18% {
+      transform: translateX(-30px);
+    }
+    40%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes slide {
+    0%,
+    18% {
+      transform: translateX(-30px);
+    }
+    40%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes rise {
+    0%,
+    18% {
+      transform: translateY(45px);
+    }
+    40%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes ghost {
+    0%,
+    22% {
+      opacity: 1;
+    }
+    36%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes appear2 {
+    0%,
+    34% {
+      opacity: 0;
+    }
+    44%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes shift {
+    0%,
+    30% {
+      transform: none;
+    }
+    52%,
+    100% {
+      transform: translateX(48px);
+    }
+  }
+
+  @keyframes dashflow {
+    to {
+      stroke-dashoffset: -7;
+    }
   }
 </style>
