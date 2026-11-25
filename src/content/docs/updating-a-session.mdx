@@ -5,6 +5,8 @@ description: Catch a session up with the branches its work lands on, by rebasing
 
 `vmono session update [pkg/session]`, or `u` on the session in the TUI, catches a session up with the branches its work lands on. The sources are fetched, then each active member's own commits are rebased inside the session onto its landing branch or that branch's copy on the remote, whichever is further ahead. A landing branch that does not exist yet stands for the member's base. Only the session branch moves; no branch in a source repo does.
 
+<UpdateFlow />
+
 ## Members are independent
 
 One with uncommitted changes is skipped, and so is one whose landing branch and its remote copy have diverged, because rebasing onto one side could drop the other.

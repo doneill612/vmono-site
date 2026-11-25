@@ -1,0 +1,292 @@
+---
+/**
+ * Diagram for "Updating a session": what `vmono session update` does to one
+ * active member's session branch, drawn as three small commit graphs. Only
+ * the session branch ever moves; no branch in a source repo does.
+ *
+ * 1. Rebase (the default): the landing branch, or its copy on the remote,
+ *    whichever is further ahead, has new commits. The session's own commits
+ *    (green) are replayed on top of that tip.
+ * 2. Diverged: the landing branch and its remote copy have each gone their own
+ *    way from the commit the session forked at. Rebasing onto either side could
+ *    drop the other's commits, so the member is skipped. Nothing changes over
+ *    time here, so this panel is static.
+ * 3. `--merge`: for that same diverged member, both sides are merged into the
+ *    session branch with a merge commit. The session then holds everything, so
+ *    finishing can fast-forward the landing branch.
+ *
+ * A band under the panels states the two guarantees: only the session branch
+ * moves, and a conflict aborts the rebase or merge so the member stays as it
+ * was.
+ *
+ * Coordinates: a 760x272 viewBox. Each panel is 230 wide at the x origins in
+ * `panels` and holds a graph whose commits sit on rows y=88 (rebase) or
+ * y=80, 110 and 140 (diverged, merge), 30px apart in x, offsets measured from
+ * the panel origin. Landing is rose, the session is green, and the remote copy
+ * is plain grey, following the site-wide colors.
+ *
+ * Animation: the rebase and merge panels loop on their own, so both are
+ * moving from the first paint; the diverged panel stays still. The markup is
+ * the finished static state, and each moving panel's graph sits in a `.stage`
+ * group that fades in and out once per 5s cycle. Motion happens between 18%
+ * and 40% of the cycle and the result then holds until the fade:
+ *
+ * - Rebase: the session commits slide from the old fork point onto the new
+ *   tip (the diagonal fork edge fades out, the straight edge fades in).
+ * - Merge: the merge commit pops in and its three edges fade in.
+ *
+ * All animation rules are inside a `prefers-reduced-motion: no-preference`
+ * query; reduced-motion visitors see the finished drawing.
+ */
+import Figure from "../Figure.astro";
+
+/** Panel x origins: Rebase, Diverged, Merge. Each panel is 230 wide. */
+const [p0, p1, p2] = [20, 265, 510] as const;
+---
+
+<Figure caption="An update only moves the session branch. By default it rebases the member's commits onto the further-ahead landing tip; when the landing branch and its remote copy have diverged it skips the member, unless you pass --merge.">
+  <svg viewBox="0 0 760 272" role="img" aria-labelledby="update-flow-title update-flow-desc">
+    <title id="update-flow-title">What updating a session does to a member's branch</title>
+    <desc id="update-flow-desc">
+      Three commit graphs. First, the session's own commits are rebased onto the landing branch or its remote copy, whichever is further ahead. Second, when the landing branch and its remote copy have diverged, the member is skipped. Third, with the merge flag, both sides are merged into the session branch with a merge commit. Only the session branch moves, and a conflict aborts the rebase or merge and leaves the member as it was.
+    </desc>
+
+    <rect class="band" x="20" y="214" width="720" height="48" rx="8"></rect>
+    <rect class="band-bar" x="20" y="214" width="4" height="48" rx="2"></rect>
+    <text class="band-text" x="40" y="234">Only the session branch moves, never a branch in a source repo.</text>
+    <text class="band-text" x="40" y="252">A conflict aborts the rebase or merge: that member stays exactly as it was.</text>
+
+    <!-- Panel 1: Rebase -->
+    <rect class="panel" x={p0} y="8" width="230" height="196" rx="8"></rect>
+    <text class="title" x={p0 + 12} y="30">Rebase</text>
+    <text class="muted" x={p0 + 12} y="46">the default</text>
+    <g class="stage">
+      <path class="edge" d={`M${p0 + 18} 88 H${p0 + 138}`}></path>
+      {[18, 48, 78, 108, 138].map((x) => <circle class="dot" cx={p0 + x} cy="88" r="6"></circle>)}
+      <text class="tag rose" x={p0 + 138} y="68">landing</text>
+      <path class="edge own ghost" d={`M${p0 + 78} 88 L${p0 + 108} 133 H${p0 + 138}`}></path>
+      <path class="edge own late" d={`M${p0 + 138} 88 H${p0 + 198}`}></path>
+      <g class="slide">
+        {[168, 198].map((x) => <circle class="dot own" cx={p0 + x} cy="88" r="6"></circle>)}
+        <text class="tag green end" x={p0 + 198} y="112">session</text>
+      </g>
+    </g>
+    <text class="muted" x={p0 + 12} y="178">onto the landing branch or its</text>
+    <text class="muted" x={p0 + 12} y="192">remote copy, whichever is ahead</text>
+
+    <!-- Panel 2: Diverged (static) -->
+    <rect class="panel" x={p1} y="8" width="230" height="196" rx="8"></rect>
+    <text class="title" x={p1 + 12} y="30">Diverged</text>
+    <text class="muted" x={p1 + 12} y="46">skipped by default</text>
+    <path class="edge" d={`M${p1 + 18} 110 H${p1 + 48}`}></path>
+    <path class="edge" d={`M${p1 + 48} 110 L${p1 + 78} 80 H${p1 + 108}`}></path>
+    <path class="edge" d={`M${p1 + 48} 110 L${p1 + 78} 140 H${p1 + 108}`}></path>
+    <path class="edge own" d={`M${p1 + 48} 110 H${p1 + 108}`}></path>
+    {[18, 48].map((x) => <circle class="dot" cx={p1 + x} cy="110" r="6"></circle>)}
+    {[78, 108].map((x) => <circle class="dot" cx={p1 + x} cy="80" r="6"></circle>)}
+    {[78, 108].map((x) => <circle class="dot" cx={p1 + x} cy="140" r="6"></circle>)}
+    {[78, 108].map((x) => <circle class="dot own" cx={p1 + x} cy="110" r="6"></circle>)}
+    <text class="tag rose" x={p1 + 108} y="64">landing</text>
+    <text class="tag green start" x={p1 + 124} y="114">session</text>
+    <text class="tag" x={p1 + 108} y="162">remote copy</text>
+    <text class="muted" x={p1 + 12} y="178">rebasing onto one side could</text>
+    <text class="muted" x={p1 + 12} y="192">drop the other side's commits</text>
+
+    <!-- Panel 3: --merge -->
+    <rect class="panel" x={p2} y="8" width="230" height="196" rx="8"></rect>
+    <text class="title" x={p2 + 12} y="30">--merge</text>
+    <text class="muted" x={p2 + 12} y="46">both sides merged in</text>
+    <g class="stage">
+      <path class="edge" d={`M${p2 + 18} 110 H${p2 + 48}`}></path>
+      <path class="edge" d={`M${p2 + 48} 110 L${p2 + 78} 80 H${p2 + 108}`}></path>
+      <path class="edge" d={`M${p2 + 48} 110 L${p2 + 78} 140 H${p2 + 108}`}></path>
+      <path class="edge own" d={`M${p2 + 48} 110 H${p2 + 108}`}></path>
+      <g class="late">
+        <path class="edge own" d={`M${p2 + 108} 80 L${p2 + 148} 110`}></path>
+        <path class="edge own" d={`M${p2 + 108} 140 L${p2 + 148} 110`}></path>
+        <path class="edge own" d={`M${p2 + 108} 110 H${p2 + 148}`}></path>
+      </g>
+      {[18, 48].map((x) => <circle class="dot" cx={p2 + x} cy="110" r="6"></circle>)}
+      {[78, 108].map((x) => <circle class="dot" cx={p2 + x} cy="80" r="6"></circle>)}
+      {[78, 108].map((x) => <circle class="dot" cx={p2 + x} cy="140" r="6"></circle>)}
+      {[78, 108].map((x) => <circle class="dot own" cx={p2 + x} cy="110" r="6"></circle>)}
+      <circle class="dot own pop" cx={p2 + 148} cy="110" r="7"></circle>
+      <text class="tag rose" x={p2 + 108} y="64">landing</text>
+      <text class="tag green start late" x={p2 + 164} y="114">session</text>
+      <text class="tag" x={p2 + 108} y="162">remote copy</text>
+    </g>
+    <text class="muted" x={p2 + 12} y="178">the session then holds both, so</text>
+    <text class="muted" x={p2 + 12} y="192">finish can fast-forward landing</text>
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted {
+    fill: var(--text-muted);
+  }
+
+  .tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--text-muted);
+  }
+
+  .tag.end {
+    text-anchor: end;
+  }
+
+  .tag.start {
+    text-anchor: start;
+  }
+
+  .tag.rose {
+    fill: var(--c-rose);
+  }
+
+  .tag.green {
+    fill: var(--c-green);
+  }
+
+  .panel {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+  }
+
+  .edge.own {
+    stroke: var(--c-green);
+  }
+
+  .dot {
+    fill: var(--text-muted);
+  }
+
+  .dot.own {
+    fill: var(--c-green);
+  }
+
+  .band {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .band-bar {
+    fill: var(--c-green);
+  }
+
+  .band-text {
+    font-size: 11.5px;
+    fill: var(--text-secondary);
+  }
+
+  /* Elements that exist only while the animation runs. */
+  .ghost {
+    opacity: 0;
+  }
+
+  /*
+   * The loops. One 5s period for everything: motion between 18% and 40%, the
+   * result held until the stage fades at 90-97%, then it fades back in at the
+   * starting positions. Gated so reduced-motion visitors get the static drawing.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .stage {
+      animation: fadecycle 5s ease-in-out infinite;
+    }
+
+    .slide {
+      animation: slide 5s ease-in-out infinite;
+    }
+
+    .ghost {
+      animation: ghost 5s ease-in-out infinite;
+    }
+
+    .late {
+      animation: appear 5s ease-in-out infinite;
+    }
+
+    .pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: pop 5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes fadecycle {
+    0% {
+      opacity: 0;
+    }
+    5%,
+    90% {
+      opacity: 1;
+    }
+    97%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide {
+    0%,
+    18% {
+      transform: translate(-60px, 45px);
+    }
+    40%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes ghost {
+    0%,
+    22% {
+      opacity: 1;
+    }
+    36%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes appear {
+    0%,
+    24% {
+      opacity: 0;
+    }
+    40%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pop {
+    0%,
+    18% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    32%,
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
