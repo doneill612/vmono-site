@@ -1,0 +1,81 @@
+---
+title: Merging and cleanup
+description: How vmono tells a branch was merged, why to start a new session afterward, and what removing one keeps.
+---
+
+Merge the pull requests on your host as you normally would. Once fetched, `vmono status`, `vmono session ls` and the TUI say how each branch merged.
+
+## Session states
+
+A session's state is worked out from its members each time, and stored nowhere.
+
+| State | Means |
+| --- | --- |
+| `in-progress` | Something is uncommitted or not pushed, a remote branch was deleted without a recognizable merge, or nothing has been done yet |
+| `pushed` | All the work is on the remotes or merged, and at least one branch is still waiting to merge |
+| `merged` | Everything done has been merged, shown as `merged (merge)`, `merged (rebase)` or `merged (squash)` |
+
+Merged sessions are dimmed and sorted last in the TUI. Remove them, and start a new session for more work.
+
+## Do not reuse a merged branch
+
+**Do not keep working on a merged branch, above all after a squash merge.** What the merge puts on the base decides why:
+
+| Merge | On the base | Your branch afterwards |
+| --- | --- | --- |
+| Merge commit | Your commits themselves | Nothing left on it |
+| Rebase | Copies of your commits | Its own commits are not on the base, though their changes are |
+| Squash | One new commit with all your changes | Same: its own commits are not on the base |
+
+Git cannot tell that a copied or squashed commit is yours. So after a squash or rebase merge, updating the branch can conflict with your own work, and a new pull request from it lists the old commits again. vmono compares the changes instead: `update` and `push` leave a merged branch alone, and tell you to start a new session.
+
+## Merges that cannot be recognized
+
+A squash whose changes were edited on the way in, or that resolved a conflict, no longer matches the branch. If the remote branch was deleted, as most hosts can do on merge, the session says `remote branch deleted`, which usually means the same thing, and `update` and `push` stop for it too. If it was not deleted, the branch looks like any pushed branch, and only you know that it merged.
+
+## If you committed after the merge
+
+Commits made after the merge are not on the base. Move them to a fresh branch:
+
+```sh
+vmono session new follow-up                   # a new session, from the current base
+cd "$(vmono path pkg/follow-up)/MEMBER"
+git log --oneline OLD_BRANCH                  # find the last commit that was merged
+git cherry-pick LAST_MERGED_COMMIT..OLD_BRANCH
+```
+
+On the old branch itself, `git rebase --onto origin/main LAST_MERGED_COMMIT` does the same, and needs a force-push if the branch is still on the remote.
+
+## Removing a session
+
+`vmono session rm pkg/session`, or `ctrl+d` in the TUI, removes the worktrees, the session directory, and the tmux session or herdr workspace it runs in. It is refused while a member has uncommitted or untracked files, or commits on no branch (a detached HEAD), unless forced.
+
+Commits on a branch never stop it, since the branch stays in the source repo:
+
+| Branch | On removal |
+| --- | --- |
+| vmono made it, nothing was committed to it, and it is on no remote | Deleted |
+| Merged, by any of the three kinds above | Kept, or deleted with `--delete-branches` (`b` in the TUI) |
+| Anything else, with or without `--force` | Kept |
+
+Each branch that is kept or deleted is listed with the reason, before you confirm in the TUI and afterwards on the command line. When work would be lost, the TUI asks you to type the session name, and the key that also deletes merged branches is then `ctrl+b`.
+
+## Taking a branch up again
+
+Sessions are disposable. To return to a branch, for review feedback say, start a session with `--track BRANCH`, or with `--branch BRANCH --reuse-branch` if it was never pushed. See [Starting a session](/docs/starting-a-session).
+
+There is no command that merges into a local branch. To do that yourself, update the session and run `git merge --ff-only BRANCH` in the source repo.
+
+## Upgrading from earlier versions
+
+Earlier versions kept a session's work on a private branch and landed it on another with `vmono session finish`. Such a session works as it is, and pushes its own branch under the name it has. `vmono doctor --fix` converts it: the session file is rewritten, an upstream of `origin/main` that git gave the branch is dropped, and any landing branch with work that is on no remote is listed, since vmono no longer pushes those.
+
+| Before | Now |
+| --- | --- |
+| `vmono session finish` | `vmono session review`, then `vmono session push` |
+| `vmono session into`, `--into` | `--branch`, `--track` or `--from` on `vmono session new` |
+| The `post_finish` hook | Ignored with a notice; use `post_push` |
+| The `branch_prefix` setting | No longer read; pass `--prefix` when starting a session |
+| `/vmono:finish` in Claude Code | `/vmono:push` |
+
+Versions before that kept a package's branch and worktrees in the package itself. Such a package lists as needing migration, and `vmono doctor --fix` converts it into a package with one session named `main` (or `main-2` and so on if a member is already called `main`). The members' worktrees move into the session and are repaired in the source repos, your own text in `AGENTS.md` comes along, the session keeps the old branch, and the package's git history is kept. Harness session history keyed by the old path, which Claude Code uses, does not follow the move.

@@ -1,0 +1,61 @@
+---
+title: Pushing a session
+description: Publish each member's branch for a pull request, never forced and only when you ask.
+---
+
+Each active member of a session is on a branch of its own repo, and there is nothing to merge back. `vmono session push [pkg/session]`, or `P` on the session in the TUI, publishes those branches for you to open pull requests from. It is the only vmono command that pushes.
+
+<PushFlow />
+
+## Preview first
+
+```sh
+vmono session review payments/token-refresh    # what a push would do; changes nothing
+vmono session push payments/token-refresh
+```
+
+`vmono session review [pkg/session] [--member NAME]... [--json]` prints the same plan as `push --dry-run`, with the same exit codes, and changes nothing. It is a command of its own so that a harness can allow it without ever allowing `push` itself; see [Safety](/docs/safety#what-your-harness-enforces).
+
+Run a push as often as you like. Commits made since the last one go out with the next.
+
+## Where a branch goes
+
+Each member's branch goes to the remote branch it tracks or, the first time, to a branch of the same name on `origin` (or on the repo's only remote), which it then tracks. A repo with several remotes and no `origin` blocks that member until you give the branch an upstream with `git branch --set-upstream-to`.
+
+## What push does with each member
+
+| Member | What push does |
+| --- | --- |
+| No commits of its own, or nothing the remote lacks | Skips it |
+| Uncommitted files | Pushes what is committed, and says what was left out |
+| Worktree on another branch | Pushes the session's branch only, and says so |
+| Already merged | Skips it and says [how it was merged](/docs/after-merging) |
+| Remote branch deleted | Blocks it: the pull request was probably merged, and pushing would bring the branch back |
+| Diverged from its remote branch | Blocks it: run [`vmono session update`](/docs/updating-a-session) |
+| A rebase in progress | Blocks it |
+
+To publish a branch again after its remote copy was deleted, run `git branch --unset-upstream BRANCH` in the member, then push.
+
+Nothing is forced, and a branch is never pushed to the branch it is meant to merge into. Members are independent: one that is blocked or refused does not stop the others.
+
+## Flags and exit code
+
+| Flag | Does |
+| --- | --- |
+| `--member NAME` | Push only this member (repeatable) |
+| `--dry-run` | Show the plan and push nothing |
+| `--json` | Print the result per member |
+
+The command exits `2` when any member is blocked, and `1` when git refused one.
+
+What the remote has is judged from the last fetch (`f` in the TUI, or `git fetch` in the source repo), and git has the final say. Pushes never prompt for credentials; see [Authentication](/docs/authentication).
+
+## From the TUI
+
+`P` on a session, or on its members view, shows where each member's branch goes, what is uncommitted and so left out, and what blocks it. `y` pushes the members that are ready. `p` on a member does the same for that member alone. A session's preview sums what is left to push, and the members view says how far each branch is published.
+
+To run your own command after a push, such as one that opens the pull requests, use the [`post_push` hook](/docs/setup-and-hooks#hooks).
+
+## What the agent does
+
+The vmono skill teaches the agent that when you say the work is done, it commits in every member, previews with `vmono session review`, reports per member, and stops. It runs `vmono session push` only when you ask (in Claude Code, [`/vmono:push`](/docs/claude-code-plugin) asks for you), and Claude Code and OpenCode still ask for permission. It never pushes with `git push`, forces, rebases commits that were pushed, deletes a branch or removes a session, and it opens or merges a pull request only if you ask for that too.

@@ -1,122 +1,125 @@
 ---
 /**
  * Diagram for "Updating a session": what `vmono session update` does to one
- * active member's session branch, drawn as three small commit graphs. Only
- * the session branch ever moves; no branch in a source repo does.
+ * active member's branch, drawn as three small commit graphs. Only that branch
+ * ever moves; the source repo's local `main` is neither read nor moved.
  *
- * 1. Rebase (the default): the landing branch, or its copy on the remote,
- *    whichever is further ahead, has new commits. The session's own commits
- *    (green) are replayed on top of that tip.
- * 2. Diverged: the landing branch and its remote copy have each gone their own
- *    way from the commit the session forked at. Rebasing onto either side could
- *    drop the other's commits, so the member is skipped. Nothing changes over
- *    time here, so this panel is static.
- * 3. `--merge`: for that same diverged member, both sides are merged into the
- *    session branch with a merge commit. The session then holds everything, so
- *    finishing can fast-forward the landing branch.
+ * 1. Not pushed: the base has new commits. Nobody else has the branch's own
+ *    commits (green), so they are replayed on top of the base.
+ * 2. Pushed: the remote copy and the base each have something new. The remote
+ *    copy is merged in and then the base, so pushing again needs no force.
+ * 3. Merged: the base holds the branch's change as a squash commit. Update
+ *    rejects this case and leaves the branch alone, so the panel is outlined in
+ *    the danger color and carries a cross. It is not one of the concept hues,
+ *    which keeps it from reading as a kind of thing. Nothing changes over time
+ *    here, so this panel is static.
  *
- * A band under the panels states the two guarantees: only the session branch
+ * A band under the panels states the two guarantees: only the member's branch
  * moves, and a conflict aborts the rebase or merge so the member stays as it
  * was.
  *
  * Coordinates: a 760x272 viewBox. Each panel is 230 wide at the x origins in
- * `panels` and holds a graph whose commits sit on rows y=88 (rebase) or
- * y=80, 110 and 140 (diverged, merge), 30px apart in x, offsets measured from
- * the panel origin. Landing is rose, the session is green, and the remote copy
- * is plain grey, following the site-wide colors.
+ * `panels` and holds a graph whose commits sit on rows y=88 and 133 (rebase,
+ * merged) or y=80, 110 and 140 (pushed), 30px apart in x, offsets measured from
+ * the panel origin. The base is rose, the member's branch is green, and the
+ * remote copy's own commit is plain grey, following the site-wide colors.
  *
- * Animation: the rebase and merge panels loop on their own, so both are
- * moving from the first paint; the diverged panel stays still. The markup is
- * the finished static state, and each moving panel's graph sits in a `.stage`
- * group that fades in and out once per 5s cycle. Motion happens between 18%
- * and 40% of the cycle and the result then holds until the fade:
+ * Animation: the first two panels loop on their own, so both are moving from
+ * the first paint; the merged panel stays still. The markup is the finished
+ * static state, and each moving panel's graph sits in a `.stage` group that
+ * fades in and out once per 5s cycle. Motion happens between 18% and 50% of
+ * the cycle and the result then holds until the fade:
  *
- * - Rebase: the session commits slide from the old fork point onto the new
+ * - Rebase: the branch's commits slide from the old fork point onto the new
  *   tip (the diagonal fork edge fades out, the straight edge fades in).
- * - Merge: the merge commit pops in and its three edges fade in.
+ * - Merge: the merge commit that takes in the remote copy pops in with its
+ *   edges, then the one that takes in the base.
  *
  * All animation rules are inside a `prefers-reduced-motion: no-preference`
  * query; reduced-motion visitors see the finished drawing.
  */
 import Figure from "../Figure.astro";
 
-/** Panel x origins: Rebase, Diverged, Merge. Each panel is 230 wide. */
+/** Panel x origins: Not pushed, Pushed, Merged. Each panel is 230 wide. */
 const [p0, p1, p2] = [20, 265, 510] as const;
 ---
 
-<Figure caption="An update only moves the session branch. By default it rebases the member's commits onto the further-ahead landing tip; when the landing branch and its remote copy have diverged it skips the member, unless you pass --merge.">
+<Figure caption="An update rebases a branch nobody else has and merges into one that has been pushed. It rejects a merged one, leaving it as it is.">
   <svg viewBox="0 0 760 272" role="img" aria-labelledby="update-flow-title update-flow-desc">
     <title id="update-flow-title">What updating a session does to a member's branch</title>
     <desc id="update-flow-desc">
-      Three commit graphs. First, the session's own commits are rebased onto the landing branch or its remote copy, whichever is further ahead. Second, when the landing branch and its remote copy have diverged, the member is skipped. Third, with the merge flag, both sides are merged into the session branch with a merge commit. Only the session branch moves, and a conflict aborts the rebase or merge and leaves the member as it was.
+      Three commit graphs. First, a branch that has not been pushed has its own commits rebased onto the base. Second, a branch that has been pushed has its remote copy and then the base merged into it, so pushing it again never needs force. Third, marked with a red cross, a branch whose work has been merged, here by a squash, is rejected and left alone. Only the member's branch moves, and a conflict aborts the rebase or merge and leaves the member as it was.
     </desc>
 
     <rect class="band" x="20" y="214" width="720" height="48" rx="8"></rect>
     <rect class="band-bar" x="20" y="214" width="4" height="48" rx="2"></rect>
-    <text class="band-text" x="40" y="234">Only the session branch moves, never a branch in a source repo.</text>
+    <text class="band-text" x="40" y="234">Only the member's own branch moves. Your local main is neither read nor moved.</text>
     <text class="band-text" x="40" y="252">A conflict aborts the rebase or merge: that member stays exactly as it was.</text>
 
-    <!-- Panel 1: Rebase -->
+    <!-- Panel 1: Not pushed -->
     <rect class="panel" x={p0} y="8" width="230" height="196" rx="8"></rect>
-    <text class="title" x={p0 + 12} y="30">Rebase</text>
-    <text class="muted" x={p0 + 12} y="46">the default</text>
+    <text class="title" x={p0 + 12} y="30">Not pushed</text>
+    <text class="muted" x={p0 + 12} y="46">rebased onto the base</text>
     <g class="stage">
       <path class="edge" d={`M${p0 + 18} 88 H${p0 + 138}`}></path>
       {[18, 48, 78, 108, 138].map((x) => <circle class="dot" cx={p0 + x} cy="88" r="6"></circle>)}
-      <text class="tag rose" x={p0 + 138} y="68">landing</text>
+      <text class="tag rose" x={p0 + 138} y="68">base</text>
       <path class="edge own ghost" d={`M${p0 + 78} 88 L${p0 + 108} 133 H${p0 + 138}`}></path>
       <path class="edge own late" d={`M${p0 + 138} 88 H${p0 + 198}`}></path>
       <g class="slide">
         {[168, 198].map((x) => <circle class="dot own" cx={p0 + x} cy="88" r="6"></circle>)}
-        <text class="tag green end" x={p0 + 198} y="112">session</text>
+        <text class="tag green end" x={p0 + 198} y="112">branch</text>
       </g>
     </g>
-    <text class="muted" x={p0 + 12} y="178">onto the landing branch or its</text>
-    <text class="muted" x={p0 + 12} y="192">remote copy, whichever is ahead</text>
+    <text class="muted" x={p0 + 12} y="178">nobody else has its commits,</text>
+    <text class="muted" x={p0 + 12} y="192">so they can be rewritten</text>
 
-    <!-- Panel 2: Diverged (static) -->
+    <!-- Panel 2: Pushed -->
     <rect class="panel" x={p1} y="8" width="230" height="196" rx="8"></rect>
-    <text class="title" x={p1 + 12} y="30">Diverged</text>
-    <text class="muted" x={p1 + 12} y="46">skipped by default</text>
-    <path class="edge" d={`M${p1 + 18} 110 H${p1 + 48}`}></path>
-    <path class="edge" d={`M${p1 + 48} 110 L${p1 + 78} 80 H${p1 + 108}`}></path>
-    <path class="edge" d={`M${p1 + 48} 110 L${p1 + 78} 140 H${p1 + 108}`}></path>
-    <path class="edge own" d={`M${p1 + 48} 110 H${p1 + 108}`}></path>
-    {[18, 48].map((x) => <circle class="dot" cx={p1 + x} cy="110" r="6"></circle>)}
-    {[78, 108].map((x) => <circle class="dot" cx={p1 + x} cy="80" r="6"></circle>)}
-    {[78, 108].map((x) => <circle class="dot" cx={p1 + x} cy="140" r="6"></circle>)}
-    {[78, 108].map((x) => <circle class="dot own" cx={p1 + x} cy="110" r="6"></circle>)}
-    <text class="tag rose" x={p1 + 108} y="64">landing</text>
-    <text class="tag green start" x={p1 + 124} y="114">session</text>
-    <text class="tag" x={p1 + 108} y="162">remote copy</text>
-    <text class="muted" x={p1 + 12} y="178">rebasing onto one side could</text>
-    <text class="muted" x={p1 + 12} y="192">drop the other side's commits</text>
-
-    <!-- Panel 3: --merge -->
-    <rect class="panel" x={p2} y="8" width="230" height="196" rx="8"></rect>
-    <text class="title" x={p2 + 12} y="30">--merge</text>
-    <text class="muted" x={p2 + 12} y="46">both sides merged in</text>
+    <text class="title" x={p1 + 12} y="30">Pushed</text>
+    <text class="muted" x={p1 + 12} y="46">merged, never rewritten</text>
     <g class="stage">
-      <path class="edge" d={`M${p2 + 18} 110 H${p2 + 48}`}></path>
-      <path class="edge" d={`M${p2 + 48} 110 L${p2 + 78} 80 H${p2 + 108}`}></path>
-      <path class="edge" d={`M${p2 + 48} 110 L${p2 + 78} 140 H${p2 + 108}`}></path>
-      <path class="edge own" d={`M${p2 + 48} 110 H${p2 + 108}`}></path>
+      <path class="edge" d={`M${p1 + 18} 110 H${p1 + 48}`}></path>
+      <path class="edge" d={`M${p1 + 48} 110 L${p1 + 78} 80 H${p1 + 108}`}></path>
+      <path class="edge own" d={`M${p1 + 48} 110 H${p1 + 108}`}></path>
+      <path class="edge" d={`M${p1 + 78} 110 L${p1 + 108} 140`}></path>
       <g class="late">
-        <path class="edge own" d={`M${p2 + 108} 80 L${p2 + 148} 110`}></path>
-        <path class="edge own" d={`M${p2 + 108} 140 L${p2 + 148} 110`}></path>
-        <path class="edge own" d={`M${p2 + 108} 110 H${p2 + 148}`}></path>
+        <path class="edge own" d={`M${p1 + 108} 110 H${p1 + 138}`}></path>
+        <path class="edge own" d={`M${p1 + 108} 140 L${p1 + 138} 110`}></path>
       </g>
-      {[18, 48].map((x) => <circle class="dot" cx={p2 + x} cy="110" r="6"></circle>)}
-      {[78, 108].map((x) => <circle class="dot" cx={p2 + x} cy="80" r="6"></circle>)}
-      {[78, 108].map((x) => <circle class="dot" cx={p2 + x} cy="140" r="6"></circle>)}
-      {[78, 108].map((x) => <circle class="dot own" cx={p2 + x} cy="110" r="6"></circle>)}
-      <circle class="dot own pop" cx={p2 + 148} cy="110" r="7"></circle>
-      <text class="tag rose" x={p2 + 108} y="64">landing</text>
-      <text class="tag green start late" x={p2 + 164} y="114">session</text>
-      <text class="tag" x={p2 + 108} y="162">remote copy</text>
+      <g class="later">
+        <path class="edge own" d={`M${p1 + 138} 110 H${p1 + 168}`}></path>
+        <path class="edge own" d={`M${p1 + 108} 80 L${p1 + 168} 110`}></path>
+      </g>
+      {[18, 48].map((x) => <circle class="dot" cx={p1 + x} cy="110" r="6"></circle>)}
+      {[78, 108].map((x) => <circle class="dot" cx={p1 + x} cy="80" r="6"></circle>)}
+      <circle class="dot" cx={p1 + 108} cy="140" r="6"></circle>
+      {[78, 108].map((x) => <circle class="dot own" cx={p1 + x} cy="110" r="6"></circle>)}
+      <circle class="dot own pop" cx={p1 + 138} cy="110" r="7"></circle>
+      <circle class="dot own pop second" cx={p1 + 168} cy="110" r="7"></circle>
+      <text class="tag rose" x={p1 + 108} y="64">base</text>
+      <text class="tag green start later" x={p1 + 180} y="114">branch</text>
+      <text class="tag" x={p1 + 108} y="162">remote copy</text>
     </g>
-    <text class="muted" x={p2 + 12} y="178">the session then holds both, so</text>
-    <text class="muted" x={p2 + 12} y="192">finish can fast-forward landing</text>
+    <text class="muted" x={p1 + 12} y="178">the remote copy, then the base:</text>
+    <text class="muted" x={p1 + 12} y="192">pushing again needs no force</text>
+
+    <!-- Panel 3: Merged, rejected (static) -->
+    <rect class="panel rejected" x={p2} y="8" width="230" height="196" rx="8"></rect>
+    <text class="title" x={p2 + 12} y="30">Merged</text>
+    <text class="reject-text" x={p2 + 12} y="46">rejected: left alone</text>
+    <circle class="reject-badge" cx={p2 + 206} cy="32" r="12"></circle>
+    <path class="reject-x" d={`M${p2 + 201} 27 L${p2 + 211} 37 M${p2 + 211} 27 L${p2 + 201} 37`}></path>
+    <path class="edge" d={`M${p2 + 18} 88 H${p2 + 168}`}></path>
+    <path class="edge own" d={`M${p2 + 48} 88 L${p2 + 78} 133 H${p2 + 108}`}></path>
+    {[18, 48, 78, 168].map((x) => <circle class="dot" cx={p2 + x} cy="88" r="6"></circle>)}
+    <circle class="squash" cx={p2 + 123} cy="88" r="7"></circle>
+    {[78, 108].map((x) => <circle class="dot own" cx={p2 + x} cy="133" r="6"></circle>)}
+    <text class="tag" x={p2 + 123} y="68">squash</text>
+    <text class="tag rose" x={p2 + 176} y="68">base</text>
+    <text class="tag green" x={p2 + 93} y="156">branch</text>
+    <text class="muted" x={p2 + 12} y="178">its commits would conflict with</text>
+    <text class="muted" x={p2 + 12} y="192">the squash: start a new session</text>
   </svg>
 </Figure>
 
@@ -164,6 +167,28 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     stroke: var(--border);
   }
 
+  .panel.rejected {
+    fill: color-mix(in srgb, var(--danger) 7%, var(--bg-elevated));
+    stroke: var(--danger);
+    stroke-width: 1.5;
+  }
+
+  .reject-text {
+    font-weight: 700;
+    fill: var(--danger);
+  }
+
+  .reject-badge {
+    fill: var(--danger);
+  }
+
+  .reject-x {
+    fill: none;
+    stroke: var(--bg-elevated);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
   .edge {
     fill: none;
     stroke: var(--text-muted);
@@ -180,6 +205,13 @@ const [p0, p1, p2] = [20, 265, 510] as const;
 
   .dot.own {
     fill: var(--c-green);
+  }
+
+  /* The one commit on the base that carries a squashed branch's change. */
+  .squash {
+    fill: var(--bg-elevated);
+    stroke: var(--c-green);
+    stroke-width: 2.5;
   }
 
   .band {
@@ -223,10 +255,18 @@ const [p0, p1, p2] = [20, 265, 510] as const;
       animation: update-appear 5s ease-in-out infinite;
     }
 
+    .later {
+      animation: update-appear2 5s ease-in-out infinite;
+    }
+
     .pop {
       transform-box: fill-box;
       transform-origin: center;
       animation: update-pop 5s ease-in-out infinite;
+    }
+
+    .pop.second {
+      animation-name: update-pop2;
     }
   }
 
@@ -274,6 +314,30 @@ const [p0, p1, p2] = [20, 265, 510] as const;
     40%,
     100% {
       opacity: 1;
+    }
+  }
+
+  @keyframes update-appear2 {
+    0%,
+    38% {
+      opacity: 0;
+    }
+    50%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes update-pop2 {
+    0%,
+    36% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    48%,
+    100% {
+      opacity: 1;
+      transform: none;
     }
   }
 

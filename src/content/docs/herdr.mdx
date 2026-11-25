@@ -12,7 +12,7 @@ vmono integration install herdr
 herdr server reload-config
 ```
 
-Every session gets a herdr workspace of its own, labeled `package/session` and rooted at the session. Opening a session creates it, or goes to it when it already exists, and never starts a second harness. When the harness exits, the workspace's shell stays, and opening the session again starts the harness there. Removing the vmono session (`session rm`, `finish --close`, `delete`) closes its workspace, unless vmono is running in it.
+Every session gets a herdr workspace of its own, labeled `package/session` and rooted at the session. Opening a session creates it, or goes to it when it already exists, and never starts a second harness. When the harness exits, the workspace's shell stays, and opening the session again starts the harness there. Removing the vmono session (`session rm`, `delete`) closes its workspace, unless vmono is running in it.
 
 The install also binds `prefix + shift + v`, which opens the vmono TUI in a popup. Launching a session from it goes to that session's workspace and closes the popup.
 

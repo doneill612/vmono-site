@@ -1,6 +1,6 @@
 ---
 title: Setup and hooks
-description: Install dependencies in every new worktree, and run your own commands when a session is created, removed or finished.
+description: Install dependencies in every new worktree, and run your own commands when a session is created, pushed or removed.
 ---
 
 A new worktree has no installed dependencies. A member can name commands to run in each one, and hooks run your own commands around a session's life.
@@ -21,7 +21,7 @@ teardown = "docker compose down"
 
 `setup` runs after the worktree is added and its `copy` files are in place: when a session starts, a member is added, or a missing worktree is recreated. `teardown` runs before a worktree is removed. Changing the commands runs nothing by itself.
 
-Commands run in the member's worktree through `sh -c` (`cmd /c` on Windows), in order, with no input, for at most 30 minutes each. Their output shows in the progress lines. They get `VMONO_PACKAGE`, `VMONO_SESSION`, `VMONO_ROOT` and `VMONO_BRANCH`, as harnesses do, plus `VMONO_MEMBER`, `VMONO_MEMBER_DIR` and `VMONO_SOURCE` (the source repo). A command that fails skips the member's remaining ones and is reported as a warning; the session is still created or removed. Interrupting one with `ctrl+c` stops the operation.
+Commands run in the member's worktree through `sh -c` (`cmd /c` on Windows), in order, with no input, for at most 30 minutes each. Their output shows in the progress lines. They get `VMONO_PACKAGE`, `VMONO_SESSION`, `VMONO_ROOT` and `VMONO_BRANCH` (the member's own branch; for harnesses and hooks, the session's), plus `VMONO_MEMBER`, `VMONO_MEMBER_DIR` and `VMONO_SOURCE` (the source repo). A command that fails skips the member's remaining ones and is reported as a warning; the session is still created or removed. Interrupting one with `ctrl+c` stops the operation.
 
 ## Hooks
 
@@ -40,10 +40,10 @@ on_failure = "abort"    # default "warn"
 | Hook | Runs | With `on_failure = "abort"`, a failure |
 | --- | --- | --- |
 | `post_create` | After a session is created and its members set up | Undoes the create |
-| `pre_remove` | Before a session is removed, by `session rm`, `finish --close` or `delete`, once it is known to be safe | Keeps it, with exit code `2`; a package delete keeps every session. `--force` does not override it |
-| `post_finish` | After a session's work has landed | Fails the command and skips `--close`; what landed stays landed |
+| `pre_remove` | Before a session is removed, by `session rm` or `delete`, once it is known to be safe | Keeps it, with exit code `2`; a package delete keeps every session. `--force` does not override it |
+| `post_push` | After any of a session's branches has been [pushed](/docs/pushing-a-session) | Fails the command; what was pushed stays pushed |
 
-They run in the session's directory, the same way as setup commands and with the same session variables, plus `VMONO_HOOK` and, for `post_finish`, `VMONO_LANDED` (`member:branch` pairs, separated by spaces).
+They run in the session's directory, the same way as setup commands and with the same session variables, plus `VMONO_HOOK` and, for `post_push`, `VMONO_PUSHED` (`member:branch` pairs, separated by spaces).
 
 ## Turning them off
 

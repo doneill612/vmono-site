@@ -8,9 +8,9 @@
  *   `copy` files put in place, then its `setup` commands run; after every
  *   member, the session's generated files are rendered and committed, and
  *   `post_create` runs.
- * - Row 2, session finished: the work lands, then `post_finish` runs. With
- *   `--close` the removal in row 3 follows.
- * - Row 3, session removed (`session rm`, `finish --close`, `delete`): the
+ * - Row 2, session pushed: the members' branches are pushed, then `post_push`
+ *   runs if any of them was.
+ * - Row 3, session removed (`session rm`, `delete`): the
  *   safety check runs first, then `pre_remove`, and then for each member its
  *   `teardown` commands and the worktree removal.
  *
@@ -59,9 +59,9 @@ const created: Chip[] = [
   { col: 2, kind: "vm", name: "session files", note: "rendered, committed" },
   { col: 3, kind: "hook", name: "post_create", note: "hook" },
 ];
-const finished: Chip[] = [
-  { col: 0, kind: "vm", name: "work lands", note: "branches move" },
-  { col: 1, kind: "hook", name: "post_finish", note: "hook" },
+const pushed: Chip[] = [
+  { col: 0, kind: "vm", name: "branches pushed", note: "never forced" },
+  { col: 1, kind: "hook", name: "post_push", note: "hook" },
 ];
 const removed: Chip[] = [
   { col: 0, kind: "vm", name: "safety check", note: "dirty work refuses" },
@@ -72,8 +72,8 @@ const removed: Chip[] = [
 
 const lanes = [
   { y: rows[0], label: "1. Session created", chips: created, offset: 0 },
-  { y: rows[1], label: "2. Session finished", chips: finished, offset: created.length },
-  { y: rows[2], label: "3. Session removed", chips: removed, offset: created.length + finished.length },
+  { y: rows[1], label: "2. Session pushed", chips: pushed, offset: created.length },
+  { y: rows[2], label: "3. Session removed", chips: removed, offset: created.length + pushed.length },
 ];
 ---
 
@@ -81,7 +81,7 @@ const lanes = [
   <svg viewBox="0 0 760 340" role="img" aria-labelledby="hooks-timeline-title hooks-timeline-desc">
     <title id="hooks-timeline-title">When setup commands, teardown commands and hooks run</title>
     <desc id="hooks-timeline-desc">
-      Three rows. When a session is created, each member's worktree is added and its copy files placed, then its setup commands run; then the session files are rendered and committed, and the post_create hook runs. When a session is finished, the work lands and then the post_finish hook runs; with the close flag, removal follows. When a session is removed, a safety check runs, then the pre_remove hook, then for each member its teardown commands and its worktree removal.
+      Three rows. When a session is created, each member's worktree is added and its copy files placed, then its setup commands run; then the session files are rendered and committed, and the post_create hook runs. When a session is pushed, its branches are pushed and then the post_push hook runs, if any branch was pushed. When a session is removed, a safety check runs, then the pre_remove hook, then for each member its teardown commands and its worktree removal.
     </desc>
     <defs>
       <marker id="hooks-timeline-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
@@ -112,9 +112,8 @@ const lanes = [
     <path class="bracket" d={`M${cols[2]} ${rows[2] + 76} V${rows[2] + 82} H${cols[3] + 150} V${rows[2] + 76}`}></path>
     <text class="muted mid" x={(cols[2] + cols[3] + 150) / 2} y={rows[2] + 96}>for each member</text>
 
-    <!-- Row 2: the --close hand-off to row 3. -->
-    <path class="link dashed" d={`M${cols[1] + 154} ${rows[1] + 46} H${cols[2] - 4}`} marker-end="url(#hooks-timeline-head)"></path>
-    <text class="muted" x={cols[2] + 12} y={rows[1] + 50}>with --close, removal (3) follows</text>
+    <!-- Row 2: when the hook runs. -->
+    <text class="muted" x={cols[2] + 12} y={rows[1] + 52}>runs if any branch was pushed</text>
 
     <!-- Legend. -->
     <rect class="chip vm" x="20" y="318" width="22" height="12" rx="3"></rect>
@@ -181,10 +180,6 @@ const lanes = [
     fill: none;
     stroke: var(--text-muted);
     stroke-width: 1.5;
-  }
-
-  .dashed {
-    stroke-dasharray: 4 3;
   }
 
   .bracket {
