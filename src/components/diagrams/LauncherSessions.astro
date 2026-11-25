@@ -1,0 +1,318 @@
+---
+/**
+ * Diagram for the tmux and herdr pages: how a multiplexer integration places
+ * vmono sessions, and how the TUI popup works as a control panel for them.
+ * One component serves both pages through the `kind` prop, so the two read as
+ * siblings; only the labels differ.
+ *
+ * - Left, the vmono TUI in a popup (opened with the integration's key). Each
+ *   row is one vmono session, `package/session`, with its agent state at the
+ *   right: under tmux only `running`, under herdr `working`, `blocked` or
+ *   `idle`.
+ * - Right, the multiplexer: one tmux session (or herdr workspace) per vmono
+ *   session, each holding the harness (`claude` here). A green outline marks
+ *   the session your client is in.
+ * - Between them, two lanes per row. The solid arrow (launch) points from the
+ *   selected row to its multiplexer session: the client goes there and the
+ *   popup closes. The dashed arrows (state) point back to the TUI's agent
+ *   column. Session is green throughout, the site-wide color for a session;
+ *   everything else is neutral.
+ *
+ * Plain inline SVG in a 760x242 viewBox, colored from the site tokens. Rows
+ * are 46 tall on a 58 pitch starting at y=62, aligned across both sides so
+ * the lanes stay horizontal.
+ *
+ * The markup is the finished state: `pkg/spike` is selected, the launch arrow
+ * points at it, and the client is in it. Under `prefers-reduced-motion:
+ * no-preference` one 5s loop plays that sequence from the start, with the
+ * popup and multiplexer visible from the first paint: the client begins in
+ * `pkg/auth`, the selection moves down one row (18-34%), the launch arrow
+ * appears and its dashes flow (34-40%), and the client's outline moves to
+ * `pkg/spike` (40-52%). The result holds until the whole stage fades at
+ * 90-97% and fades back in at the start. Only the selection, the arrow and
+ * the outline move: they are the point. Reduced-motion visitors see the
+ * static drawing.
+ */
+import Figure from "../Figure.astro";
+
+interface Props {
+  /** Which multiplexer to draw. */
+  kind: "tmux" | "herdr";
+}
+
+const { kind } = Astro.props;
+
+const labels = {
+  tmux: {
+    key: "prefix + V, in a popup",
+    mux: "tmux",
+    muxNote: "a tmux session per vmono session",
+    unit: "tmux session",
+    states: ["running", "running", "running"],
+    caption:
+      "Every vmono session gets a tmux session of its own, named package/session, with the harness as its only process. Launching from the popup switches your client to that session and closes the popup, and the agent column reads back which agents are running.",
+    desc: "The vmono TUI opens in a popup with prefix plus V and lists sessions. Each vmono session has its own tmux session running the harness. Launching a session from the popup switches the client to that session's tmux session and closes the popup, and each agent's running state is read back into the TUI.",
+  },
+  herdr: {
+    key: "prefix + shift + v, in a popup",
+    mux: "herdr",
+    muxNote: "a workspace per vmono session",
+    unit: "workspace",
+    states: ["working", "idle", "blocked"],
+    caption:
+      "Every vmono session gets a herdr workspace of its own, labeled package/session and rooted at the session. Launching from the popup goes to that workspace and closes the popup, and the agent column reads back what each agent is doing.",
+    desc: "The vmono TUI opens in a popup with prefix plus shift plus v and lists sessions. Each vmono session has its own herdr workspace running the harness. Launching a session from the popup goes to that session's workspace and closes the popup, and each agent's state, working, idle or blocked, is read back into the TUI.",
+  },
+} as const;
+
+const t = labels[kind];
+
+/** The three sessions drawn, in list order. The second one is the launch target. */
+const names = ["pkg/auth", "pkg/spike", "pkg/docs"] as const;
+
+const top = 62;
+const pitch = 58;
+const rowH = 46;
+const id = `launcher-sessions-${kind}`;
+---
+
+<Figure caption={t.caption}>
+  <svg viewBox="0 0 760 242" role="img" aria-labelledby={`${id}-title ${id}-desc`}>
+    <title id={`${id}-title`}>How {t.mux} places each vmono session</title>
+    <desc id={`${id}-desc`}>{t.desc}</desc>
+    <defs>
+      <marker id={`${id}-head`} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" class="head"></path>
+      </marker>
+    </defs>
+
+    <!-- Left: the TUI popup -->
+    <rect class="panel popup" x="20" y="8" width="280" height="226" rx="8"></rect>
+    <text class="title" x="32" y="30">vmono TUI</text>
+    <text class="muted" x="32" y="47">{t.key}</text>
+    {
+      names.map((name, i) => (
+        <>
+          <rect class="row" x="32" y={top + i * pitch} width="256" height={rowH} rx="6"></rect>
+          <text class="name" x="44" y={top + i * pitch + 28}>{name}</text>
+          <text class="state" x="276" y={top + i * pitch + 28}>{t.states[i]}</text>
+        </>
+      ))
+    }
+    <g class="stage">
+      <rect class="sel" x="32" y={top + pitch} width="256" height={rowH} rx="6"></rect>
+    </g>
+
+    <!-- Center: legend and lanes -->
+    <path class="link" d="M312 26 H336" marker-end={`url(#${id}-head)`}></path>
+    <text class="muted" x="344" y="30">launch</text>
+    <path class="link soft" d="M336 44 H312" marker-end={`url(#${id}-head)`}></path>
+    <text class="muted" x="344" y="48">state</text>
+    {
+      names.map((_, i) => (
+        <path class="link soft" d={`M424 ${top + i * pitch + 32} H304`} marker-end={`url(#${id}-head)`}></path>
+      ))
+    }
+    <g class="stage">
+      <g class="launch">
+        <path class="link go" d={`M304 ${top + pitch + 14} H424`} marker-end={`url(#${id}-head)`}></path>
+      </g>
+    </g>
+
+    <!-- Right: the multiplexer -->
+    <rect class="panel" x="430" y="8" width="310" height="226" rx="8"></rect>
+    <text class="title" x="442" y="30">{t.mux}</text>
+    <text class="muted" x="442" y="47">{t.muxNote}</text>
+    {
+      names.map((name, i) => (
+        <>
+          <rect class="row own" x="442" y={top + i * pitch} width="286" height={rowH} rx="6"></rect>
+          <text class="name" x="454" y={top + i * pitch + 20}>{name}</text>
+          <text class="muted" x="454" y={top + i * pitch + 36}>{t.unit}</text>
+          <rect class="pill" x="654" y={top + i * pitch + 8} width="62" height="18" rx="9"></rect>
+          <text class="pilltext" x="685" y={top + i * pitch + 20}>claude</text>
+        </>
+      ))
+    }
+    <g class="stage">
+      <g class="focus">
+        <rect class="ring" x="440" y={top + pitch - 2} width="290" height={rowH + 4} rx="7"></rect>
+        <text class="here" x="716" y={top + pitch + 38}>client here</text>
+      </g>
+    </g>
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted {
+    fill: var(--text-muted);
+  }
+
+  .name {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .state {
+    text-anchor: end;
+    fill: var(--text-muted);
+  }
+
+  .panel {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .panel.popup {
+    stroke-dasharray: 5 4;
+  }
+
+  .row {
+    fill: var(--bg-surface);
+    stroke: var(--border-muted);
+  }
+
+  .row.own {
+    fill: color-mix(in srgb, var(--c-green) 6%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-green) 35%, var(--border));
+  }
+
+  .sel {
+    fill: color-mix(in srgb, var(--text) 8%, transparent);
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .pill {
+    fill: color-mix(in srgb, var(--c-green) 14%, var(--bg-elevated));
+    stroke: color-mix(in srgb, var(--c-green) 45%, var(--border));
+  }
+
+  .pilltext {
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--c-green);
+  }
+
+  .ring {
+    fill: none;
+    stroke: var(--c-green);
+    stroke-width: 2;
+  }
+
+  .here {
+    font-weight: 700;
+    text-anchor: end;
+    fill: var(--c-green);
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+  }
+
+  .link.soft {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .head {
+    fill: var(--text-muted);
+  }
+
+  /*
+   * The loop. One 5s period: the selection moves at 18-34%, the launch arrow
+   * shows from 34% with its dashes flowing, the client's outline moves at
+   * 40-52%, and the stage fades out and back in around the reset. Gated so
+   * reduced-motion visitors get the static drawing.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .stage {
+      animation: fadecycle 5s ease-in-out infinite;
+    }
+
+    .sel {
+      animation: selmove 5s ease-in-out infinite;
+    }
+
+    .launch {
+      animation: launch 5s ease-in-out infinite;
+    }
+
+    .link.go {
+      stroke-dasharray: 5 4;
+      animation: dashflow 0.9s linear infinite;
+    }
+
+    .focus {
+      animation: focusmove 5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes fadecycle {
+    0% {
+      opacity: 0;
+    }
+    5%,
+    90% {
+      opacity: 1;
+    }
+    97%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes selmove {
+    0%,
+    18% {
+      transform: translateY(-58px);
+    }
+    34%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes launch {
+    0%,
+    34% {
+      opacity: 0;
+    }
+    40%,
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes focusmove {
+    0%,
+    40% {
+      transform: translateY(-58px);
+    }
+    52%,
+    100% {
+      transform: none;
+    }
+  }
+
+  @keyframes dashflow {
+    to {
+      stroke-dashoffset: -9;
+    }
+  }
+</style>
