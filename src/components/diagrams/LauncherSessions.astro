@@ -27,11 +27,13 @@
  * no-preference` one 5s loop plays that sequence from the start, with the
  * popup and multiplexer visible from the first paint: the client begins in
  * `pkg/auth`, the selection moves down one row (18-34%), the launch arrow
- * appears and its dashes flow (34-40%), and the client's outline moves to
- * `pkg/spike` (40-52%). The result holds until the whole stage fades at
- * 90-97% and fades back in at the start. Only the selection, the arrow and
- * the outline move: they are the point. Reduced-motion visitors see the
- * static drawing.
+ * appears and its dashes flow (34-40%), and the client's outline hands off
+ * to `pkg/spike` (40-52%): a copy on `pkg/auth` (`.focus-from`) fades out
+ * while the one on `pkg/spike` (`.focus-to`) fades in, so the "client here"
+ * label never travels across another row's text. The result holds until the
+ * whole stage fades at 90-97% and fades back in at the start. Only the
+ * selection, the arrow and the outline change: they are the point.
+ * Reduced-motion visitors see the static drawing.
  */
 import Figure from "../Figure.astro";
 
@@ -135,7 +137,11 @@ const id = `launcher-sessions-${kind}`;
       ))
     }
     <g class="stage">
-      <g class="focus">
+      <g class="focus-from">
+        <rect class="ring" x="440" y={top - 2} width="290" height={rowH + 4} rx="7"></rect>
+        <text class="here" x="716" y={top + 38}>client here</text>
+      </g>
+      <g class="focus-to">
         <rect class="ring" x="440" y={top + pitch - 2} width="290" height={rowH + 4} rx="7"></rect>
         <text class="here" x="716" y={top + pitch + 38}>client here</text>
       </g>
@@ -206,6 +212,10 @@ const id = `launcher-sessions-${kind}`;
     fill: var(--c-green);
   }
 
+  .focus-from {
+    opacity: 0;
+  }
+
   .ring {
     fill: none;
     stroke: var(--c-green);
@@ -236,8 +246,8 @@ const id = `launcher-sessions-${kind}`;
 
   /*
    * The loop. One 5s period: the selection moves at 18-34%, the launch arrow
-   * shows from 34% with its dashes flowing, the client's outline moves at
-   * 40-52%, and the stage fades out and back in around the reset. Gated so
+   * shows from 34% with its dashes flowing, the client's outline hands off
+   * between rows at 40-52%, and the stage fades out and back in around the reset. Gated so
    * reduced-motion visitors get the static drawing.
    */
   @media (prefers-reduced-motion: no-preference) {
@@ -258,8 +268,12 @@ const id = `launcher-sessions-${kind}`;
       animation: dashflow 0.9s linear infinite;
     }
 
-    .focus {
-      animation: focusmove 5s ease-in-out infinite;
+    .focus-from {
+      animation: focusout 5s ease-in-out infinite;
+    }
+
+    .focus-to {
+      animation: focusin 5s ease-in-out infinite;
     }
   }
 
@@ -299,14 +313,25 @@ const id = `launcher-sessions-${kind}`;
     }
   }
 
-  @keyframes focusmove {
+  @keyframes focusout {
     0%,
     40% {
-      transform: translateY(-58px);
+      opacity: 1;
+    }
+    46%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes focusin {
+    0%,
+    44% {
+      opacity: 0;
     }
     52%,
     100% {
-      transform: none;
+      opacity: 1;
     }
   }
 
