@@ -1,0 +1,27 @@
+---
+title: Initializing a package
+description: Have a harness explore a package's members and record an overview, with vmono package init.
+---
+
+```sh
+vmono package init payments
+```
+
+`vmono package init [pkg]`, or `i` on a package in the TUI, opens a harness to explore the package and write down what every session should know. Run it when you create a package, and again when its members change.
+
+vmono checks every member out, detached at its base or ref, into a temporary `.init` directory in the package, and starts the harness there with the task. The agent reads the members and records, without asking first:
+
+- an **overview**, which appears in every session's `AGENTS.md`. Recording again replaces it.
+- the **purpose** and member **roles**, where they are empty or still exactly what it wrote before.
+
+Your own purpose, roles, context and notes are never changed. The agent then shows you what it recorded, and you ask for corrections. When the harness exits, the checkout is removed and vmono says what was recorded. Sessions, branches and setup commands are not involved, and a package needs no session to be initialized.
+
+When members are added or removed afterward, `vmono show` and the TUI say the overview is out of date. Edit it with `vmono describe --overview`; an empty one removes it.
+
+## Read-only, and what is left behind
+
+The exploration is read-only in layers. Claude Code and OpenCode get rules that deny edits, commits and pushes, Codex runs in its read-only sandbox, and Pi gets no edit tools. Members' own `ask` and `deny` rules apply; their `allow` rules, hooks and skills do not. None of this confines shell commands the agent is allowed to run, so it also matters that the worktrees are throwaway: they are on no branch, and no edit in them reaches a source repo's working tree.
+
+If files were changed, or the agent committed, the checkout is kept and reported. `vmono package init [pkg] --clean --force` discards it. One left by a crash is replaced by the next run, or removed by `--clean` or `vmono doctor --fix`. A package being initialized cannot be deleted.
+
+In tmux or herdr the initialization gets a place of its own named `package/.init` (`package/_init` in tmux), and starting another goes to it. An agent cannot start one.
