@@ -23,11 +23,15 @@
  * values in `cols` and are 150 wide, leaving 40 for the arrow between them;
  * the three rows start at the y values in `rows`.
  *
- * Animation: a soft highlight travels along the ten chips in order, one after
- * the other, in a single 6s loop, so the sequence reads as a timeline of one
- * session's life. Each chip's highlight is delayed by its position (`--i`)
- * times 0.5s. The markup is the finished static state; the highlight rects sit
- * at opacity 0 until the animation runs, and all animation rules are inside a
+ * Animation: a soft highlight travels along the ten chips in order, one at a
+ * time, so the sequence reads as a timeline of one session's life. Each chip
+ * owns a 0.9s slot (its position `--i` times 0.9s) in a single 10s loop. Within
+ * its slot the highlight fades in (0.2s), holds (0.3s) and fades out (0.25s),
+ * which leaves 0.15s of nothing lit before the next chip's slot begins, so two
+ * highlights are never visible together. The last chip ends at 8.85s and the
+ * diagram rests, unlit, until the loop restarts at 10s. The markup is the
+ * finished static state; the highlight rects sit at opacity 0 until the
+ * animation runs, and all animation rules are inside a
  * `prefers-reduced-motion: no-preference` query.
  */
 import Figure from "../Figure.astro";
@@ -194,13 +198,14 @@ const lanes = [
   }
 
   /*
-   * One 6s loop; chip i lights up at i * 0.5s for about a second, so the
-   * highlight walks through all ten chips and rests before it starts again.
+   * One 10s loop. Chip i is lit during [i * 0.9s, i * 0.9s + 0.75s] of every
+   * cycle: 0-2% fade in, 2-5% hold, 5-7.5% fade out, then dark until the next
+   * cycle. The 0.9s slot is longer than the 0.75s window, so slots never overlap.
    */
   @media (prefers-reduced-motion: no-preference) {
     .glow {
-      animation: step 6s ease-in-out infinite;
-      animation-delay: calc(var(--i) * 0.5s);
+      animation: step 10s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.9s);
     }
   }
 
@@ -208,11 +213,11 @@ const lanes = [
     0% {
       opacity: 0;
     }
-    4%,
-    12% {
+    2%,
+    5% {
       opacity: 1;
     }
-    20%,
+    7.5%,
     100% {
       opacity: 0;
     }
