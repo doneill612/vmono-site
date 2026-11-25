@@ -56,14 +56,15 @@
   /*
    * Concept palette. Each color means one thing wherever it appears (landing
    * tree, Concepts table, sidebar groups): violet = package, green = session,
-   * cyan = active member, amber = reference member, rose = landing branch.
-   * Light values are darkened to keep 4.5:1 text contrast on white.
+   * cyan = active member, amber = reference member, rose = landing branch,
+   * lime = hook (the Setup and hooks diagram). Light values are darkened to keep 4.5:1 text contrast on white.
    */
   --c-cyan: #0777a8;
   --c-green: #12804a;
   --c-violet: #6d4fd6;
   --c-amber: #9a5a08;
   --c-rose: #c2307a;
+  --c-lime: #566f00;
 }
 
 /* A `data-hue` ancestor sets `--hue`, which components tint themselves with. */
@@ -100,6 +101,7 @@
     --c-violet: #b39dff;
     --c-amber: #ffb454;
     --c-rose: #ff7ab6;
+    --c-lime: #c3e04f;
   }
 }
 
@@ -123,4 +125,5 @@
   --c-violet: #b39dff;
   --c-amber: #ffb454;
   --c-rose: #ff7ab6;
+  --c-lime: #c3e04f;
 }

@@ -16,20 +16,23 @@
  *
  * Chips are styled by what owns the step: vmono itself (plain), the package
  * manifest's per-member commands (violet, the package's color) and the
- * global hooks from `config.toml` (a heavier outline). A bracket under a pair
- * of chips marks the steps that repeat once per member.
+ * global hooks from `config.toml` (lime, the hook color). A bracket under a
+ * pair of chips marks the steps that repeat once per member.
  *
  * Plain inline SVG in a 760x340 viewBox. The four chip columns start at the x
  * values in `cols` and are 150 wide, leaving 40 for the arrow between them;
  * the three rows start at the y values in `rows`.
  *
  * Animation: a soft highlight travels along the ten chips in order, one at a
- * time, so the sequence reads as a timeline of one session's life. Each chip
- * owns a 0.9s slot (its position `--i` times 0.9s) in a single 10s loop. Within
- * its slot the highlight fades in (0.2s), holds (0.3s) and fades out (0.25s),
- * which leaves 0.15s of nothing lit before the next chip's slot begins, so two
- * highlights are never visible together. The last chip ends at 8.85s and the
- * diagram rests, unlit, until the loop restarts at 10s. The markup is the
+ * time, so the sequence reads as a timeline of one session's life. The
+ * highlight takes its chip's own color (neutral for vmono's steps, violet for
+ * setup and teardown, lime for hooks), so what is lit is also what is
+ * running. Each chip owns a 0.7s slot (its position `--i` times 0.7s) in a
+ * single 8s loop. Within its slot the highlight fades in (0.15s), holds (0.2s)
+ * and fades out (0.2s), which leaves 0.15s of nothing lit before the next
+ * chip's slot begins, so two highlights are never visible together. The last
+ * chip ends at 6.85s and the diagram rests, unlit, until the loop restarts at
+ * 8s. The markup is the
  * finished static state; the highlight rects sit at opacity 0 until the
  * animation runs, and all animation rules are inside a
  * `prefers-reduced-motion: no-preference` query.
@@ -97,7 +100,7 @@ const lanes = [
             <rect class={`chip ${chip.kind}`} x={cols[chip.col]} y={lane.y + 28} width="150" height="40" rx="7"></rect>
             <text class={`name ${chip.kind}`} x={cols[chip.col] + 12} y={lane.y + 44}>{chip.name}</text>
             <text class="note" x={cols[chip.col] + 12} y={lane.y + 60}>{chip.note}</text>
-            <rect class="glow" style={`--i:${lane.offset + i}`} x={cols[chip.col]} y={lane.y + 28} width="150" height="40" rx="7"></rect>
+            <rect class={`glow ${chip.kind}`} style={`--i:${lane.offset + i}`} x={cols[chip.col]} y={lane.y + 28} width="150" height="40" rx="7"></rect>
           </g>
         ))}
       </g>
@@ -154,6 +157,10 @@ const lanes = [
     fill: var(--c-violet);
   }
 
+  .name.hook {
+    fill: var(--c-lime);
+  }
+
   .chip {
     fill: var(--bg-elevated);
     stroke: var(--border);
@@ -165,7 +172,8 @@ const lanes = [
   }
 
   .chip.hook {
-    stroke: var(--text-secondary);
+    fill: color-mix(in srgb, var(--c-lime) 10%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-lime) 65%, var(--border));
     stroke-width: 1.5;
   }
 
@@ -189,23 +197,33 @@ const lanes = [
     fill: var(--text-muted);
   }
 
-  /* The travelling highlight: invisible unless the animation runs. */
+  /* The travelling highlight, in its chip's own color: invisible unless the animation runs. */
   .glow {
-    fill: color-mix(in srgb, var(--text) 14%, transparent);
-    stroke: var(--text);
+    --glow: var(--text);
+    fill: color-mix(in srgb, var(--glow) 16%, transparent);
+    stroke: var(--glow);
     stroke-width: 1.5;
     opacity: 0;
   }
 
+  .glow.manifest {
+    --glow: var(--c-violet);
+  }
+
+  .glow.hook {
+    --glow: var(--c-lime);
+  }
+
   /*
-   * One 10s loop. Chip i is lit during [i * 0.9s, i * 0.9s + 0.75s] of every
-   * cycle: 0-2% fade in, 2-5% hold, 5-7.5% fade out, then dark until the next
-   * cycle. The 0.9s slot is longer than the 0.75s window, so slots never overlap.
+   * One 8s loop. Chip i is lit during [i * 0.7s, i * 0.7s + 0.55s] of every
+   * cycle: 0-1.875% fade in, to 4.375% hold, to 6.875% fade out, then dark until
+   * the next cycle. The 0.7s slot is longer than the 0.55s window, so slots never
+   * overlap.
    */
   @media (prefers-reduced-motion: no-preference) {
     .glow {
-      animation: step 10s ease-in-out infinite;
-      animation-delay: calc(var(--i) * 0.9s);
+      animation: step 8s ease-in-out infinite;
+      animation-delay: calc(var(--i) * 0.7s);
     }
   }
 
@@ -213,11 +231,11 @@ const lanes = [
     0% {
       opacity: 0;
     }
-    2%,
-    5% {
+    1.875%,
+    4.375% {
       opacity: 1;
     }
-    7.5%,
+    6.875%,
     100% {
       opacity: 0;
     }
