@@ -35,6 +35,8 @@ adapter = "agent-skills"
 
 Any CLI that takes its working directory as its project can be a harness. The `adapter` says what vmono generates for it: `claude-code` (settings and the plugin), `opencode` (`opencode.json` and the skill), `agent-skills` (the skill under `.agents/skills/`, for Codex and Pi), or none. A built-in harness listed without an adapter still running its built-in command gets its default one, so a config saved before an adapter existed picks it up.
 
+`init_args` are added when a harness is started to [initialize a package](/docs/package-init), with `{prompt}` replaced by the first prompt. Built-in harnesses have defaults; without any, vmono prints the prompt for you to paste.
+
 ## Launcher
 
 `launcher` decides where `vmono open`, and launching from the TUI, start a session's harness:

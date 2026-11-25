@@ -19,13 +19,15 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono session review [pkg/session] [--into [MEMBER=]B]... [--json]` | Show what finishing would land, changing nothing (the read-only form of `session finish`); see [Finishing a session](/docs/finishing-a-session#when-it-refuses) |
 | `vmono session push [pkg/session] [--member NAME]... [--dry-run] [--json]` | Push a finished session's landing branches to their remotes, never forced; see [Pushing](/docs/finishing-a-session#pushing) |
 | `vmono session rm <pkg>/<session> [--force] [--delete-branches]` | Remove a session; the package and its other sessions stay |
+| `vmono package init [pkg] [--harness H]` | Explore the members with a harness and record an overview. See [Initializing a package](/docs/package-init). `--clean [--force]` removes a checkout an earlier run left behind |
+| `vmono package record [pkg] (FILE \| -)` | What the agent records with: JSON with `overview`, and optionally `purpose` and `roles` |
 | `vmono add [pkg] <repo> [--ref] [--role R]` | Add a member to the package, and so to every session (a known repo name or any path) |
 | `vmono rm [pkg] <member> [--force] [--delete-branch]` | Remove a member from every session |
 | `vmono edit [pkg] [--force] [--reuse-branch]` | Edit the package manifest in `$EDITOR`; changes apply as a diff to every session. `--force` allows removals that discard unsaved work; `--reuse-branch` checks out a session branch that already exists |
 | `vmono sync [pkg[/session]] [--refs]` | Recreate missing worktrees and regenerate files, in one session or all of a package's; `--refs` moves reference members to their latest fetched ref |
 | `vmono status [pkg[/session]]` | The session's state, and per member: branch or ref, dirty, untracked, ahead/behind, and what is left to land |
 | `vmono show [pkg[/session]]` | Purpose, context, notes, sessions and members; with a session, each member's live state |
-| `vmono describe [pkg] --purpose T \| --context T` | Replace the purpose or context (`--purpose-file`, `--context-file` too) |
+| `vmono describe [pkg] --purpose T \| --context T \| --overview T` | Replace the purpose, context or overview (`--purpose-file`, `--context-file`, `--overview-file` too) |
 | `vmono role [pkg] <member> TEXT` | Set a member's role |
 | `vmono note [pkg] TEXT` | Append a note to the package, stamped with time and author |
 | `vmono open [pkg[/session]] [--harness H] [-- ARGS]` | Launch a harness at a session root, in this terminal or in a tmux session or herdr workspace of its own, as the `launcher` setting says |

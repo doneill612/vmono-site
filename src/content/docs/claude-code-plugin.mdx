@@ -22,3 +22,5 @@ If your organization blocks skills-directory plugins, or your Claude Code predat
 ## Other harnesses
 
 The other harnesses have no plugin strategy yet, so they get the same `SKILL.md` on its own, with the guidance behind the three commands (checking status, proposing a note before writing it, finishing) in it: OpenCode under `.opencode/skills/vmono/`, and Codex and Pi under `.agents/skills/vmono/`, which both scan from the session root. They do not get the live state at the start of a conversation; the skill tells the agent to run `vmono show --json` and `vmono status --json` instead.
+
+While a [package is being initialized](/docs/package-init), no harness gets the plugin or the skill, since their guidance is about doing work; the task is in `AGENTS.md`.

@@ -12,6 +12,7 @@ description: What vmono will never do to your repos and worktrees, and what it l
 - On Windows, vmono refuses to remove a session, member or package while your working directory is inside it, since Windows cannot delete a directory in use. `cd` out and run the command again, naming the session (`vmono session finish PKG/SESSION --close`). Nothing has changed when it refuses, and `--force` does not apply. Another program holding the directory open, such as an editor or a second terminal, can still make the removal fail with git's own `Permission denied`.
 - Hooks and `setup` and `teardown` commands run as you, outside any sandbox the harness uses. They come only from your config and the package manifest, so treat a change to those like a change to a script. See [Setup and hooks](/docs/setup-and-hooks).
 - Symlinks are never followed or created.
+- [`vmono package init`](/docs/package-init) works in temporary detached worktrees. One whose files were changed is kept until you discard it with `--clean --force`.
 - Committing from a worktree writes into the source repo's git directory, outside the package. `vmono inspect --json` lists each `git_common_dir` so sandboxing wrappers can allow it.
 
 ## What your harness enforces

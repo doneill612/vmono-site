@@ -32,6 +32,7 @@ Set `tmux_switch = false` to stay put. vmono still creates or finds the session,
 
 ## Details
 
+- [Initializing a package](/docs/package-init) runs in a place of its own, `package/_init`.
 - vmono finds its sessions by a `@vmono_session` tag it sets on each tmux session, not by name, so renaming one in tmux does not lose it.
 - A tmux session name cannot contain `.` or `:`, so those become `_`.
 - Arguments after `--` in `vmono open` only apply when the session is created; an existing session is reused as it is.
