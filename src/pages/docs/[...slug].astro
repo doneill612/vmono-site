@@ -2,14 +2,17 @@
 /**
  * Renders every entry of the `docs` collection at `/docs/<id>`. The `index`
  * entry has no slug and is served at `/docs`. MDX pages can use the
- * `CodeTabs`, `Callout` and `Term` components, which are passed in through the
- * `components` map so content files need no imports.
+ * `CodeTabs`, `Callout`, `Term` and diagram components (`SessionMap`,
+ * `FinishFlow`), which are passed in through the `components` map so content
+ * files need no imports.
  */
 import { getCollection, render } from "astro:content";
 import Docs from "../../layouts/Docs.astro";
 import CodeTabs from "../../components/CodeTabs.astro";
 import Callout from "../../components/Callout.astro";
 import Term from "../../components/Term.astro";
+import SessionMap from "../../components/SessionMap.astro";
+import FinishFlow from "../../components/FinishFlow.astro";
 
 export async function getStaticPaths() {
   const entries = await getCollection("docs");
@@ -24,5 +27,5 @@ const { Content, headings } = await render(entry);
 ---
 
 <Docs id={entry.id} title={entry.data.title} description={entry.data.description} headings={headings}>
-  <Content components={{ CodeTabs, Callout, Term }} />
+  <Content components={{ CodeTabs, Callout, Term, SessionMap, FinishFlow }} />
 </Docs>

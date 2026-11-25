@@ -1,0 +1,51 @@
+---
+/**
+ * The frame every docs diagram sits in: a bordered surface that holds an
+ * inline SVG (the default slot) and an optional caption beneath it.
+ *
+ * The diagram keeps a minimum width so its text stays legible, and the frame
+ * scrolls sideways on narrow screens instead of shrinking the drawing. The
+ * SVGs color themselves from the site tokens (`--c-*`, `--text-*`), so the
+ * frame needs no theme logic of its own.
+ */
+interface Props {
+  /** Plain-text explanation shown under the drawing. */
+  caption?: string;
+}
+
+const { caption } = Astro.props;
+---
+
+<figure class="diagram">
+  <div class="scroll"><slot /></div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .diagram {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--border-muted);
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    overflow: hidden;
+  }
+
+  .scroll {
+    overflow-x: auto;
+    padding: 1rem;
+  }
+
+  .scroll :global(svg) {
+    display: block;
+    width: 100%;
+    min-width: 40rem;
+    height: auto;
+  }
+
+  figcaption {
+    padding: 0.625rem 1rem;
+    border-top: 1px solid var(--border-muted);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+</style>

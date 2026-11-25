@@ -5,6 +5,8 @@ description: Land a session's commits on each member's branch in its source repo
 
 A session is done when its work has landed on a branch in each member's source repo. `vmono session finish` does that locally; it never pushes. Pushing is a separate step you ask for, [below](#pushing).
 
+<FinishFlow />
+
 1. For each active member, the session's own commits (on the session branch, but on neither the member's base nor its landing branch) are rebased onto the landing branch, inside the session's worktree.
 2. The landing branch in the source repo then moves to the result: fast-forwarded when it is checked out in a clean worktree, updated in place when nothing has it checked out, and created when it does not exist yet.
 

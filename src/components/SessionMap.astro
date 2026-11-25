@@ -1,0 +1,248 @@
+---
+/**
+ * Diagram for the Concepts page: every term of the glossary in one picture.
+ *
+ * - Members (left): the source repos, which stay where they are. Active
+ *   members carry a rose tag naming the landing branch their work lands on;
+ *   the reference member is read-only context and has none.
+ * - Package (dashed violet frame): holds the manifest strip (purpose,
+ *   context, notes, the overview written by `package init`, and a role per
+ *   member) and no worktrees. The strip feeds every session below it.
+ * - Sessions (green columns): each holds a worktree of every member, checked
+ *   out on the session branch for an active member (cyan) or detached at a
+ *   fixed ref for the reference member (amber).
+ * - The legend repeats the site-wide concept palette as a key.
+ *
+ * The drawing is plain inline SVG so it follows the light/dark tokens and
+ * needs no script. Coordinates are in a 760x396 viewBox; source boxes and
+ * worktree cells share the same y values so the connectors stay horizontal.
+ *
+ * Two CSS-only animations run continuously: the package frame's dashes march
+ * around it, and the connectors' dashes flow from each source repo into its
+ * worktrees. Both shift `stroke-dashoffset` by exactly one dash period per
+ * cycle, so the loop is seamless. Under `prefers-reduced-motion` neither runs
+ * and the connectors fall back to solid lines.
+ */
+import Figure from "./Figure.astro";
+
+/** One row per member: its name, mode, the worktree's second line and its landing tag. */
+const rows = [
+  { name: "member-a", kind: "act", note: "active, on the session branch", tag: "lands on main" },
+  { name: "member-b", kind: "act", note: "active, on the session branch", tag: "lands on main" },
+  { name: "member-c", kind: "ref", note: "reference, read-only", tag: "" },
+] as const;
+
+/** The two sessions drawn as columns, with their branch names. */
+const sessions = [
+  { name: "token-refresh", branch: "vmono/project/token-refresh", x: 216 },
+  { name: "spike", branch: "vmono/project/spike", x: 480 },
+] as const;
+
+/** The legend: one chip per concept, in the site-wide hue. */
+const legend = [
+  { label: "package", hue: "violet", x: 20 },
+  { label: "session", hue: "green", x: 120 },
+  { label: "active member", hue: "cyan", x: 215 },
+  { label: "reference member", hue: "amber", x: 345 },
+  { label: "landing branch", hue: "rose", x: 505 },
+] as const;
+
+const top = 152;
+const pitch = 64;
+const cellX = [230, 494] as const;
+---
+
+<Figure caption="Each member's source repo stays where it is. The package holds what you write once; every session adds a worktree of each member, sharing its object storage, and its commits land back on the member's landing branch when it is finished.">
+  <svg viewBox="0 0 760 396" role="img" aria-labelledby="session-map-title session-map-desc">
+    <title id="session-map-title">Members, a package and its sessions</title>
+    <desc id="session-map-desc">
+      Three members, which are source repos, on the left; members a and b have a landing branch and member c is read-only. The package holds a manifest with purpose, context, notes, an overview and a role per member. Its two sessions, token-refresh and spike, each hold a git worktree of every member: members a and b are active and on the session branch, member c is a detached reference.
+    </desc>
+    <defs>
+      <marker id="session-map-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" class="head"></path>
+      </marker>
+    </defs>
+
+    <text class="label" x="20" y="32">members</text>
+    <text class="muted" x="20" y="47">your source repos</text>
+
+    <rect class="pkg" x="200" y="10" width="540" height="348" rx="10"></rect>
+    <text class="label violet" x="216" y="32">package: project</text>
+
+    <rect class="manifest" x="216" y="44" width="508" height="44" rx="6"></rect>
+    <text class="label violet" x="230" y="62">manifest: shared by every session</text>
+    <text class="muted" x="230" y="78">purpose, context, notes, overview, a role per member</text>
+
+    {
+      sessions.map((s) => (
+        <>
+          <path class="feed" d={`M${s.x + 122} 88 V102`} marker-end="url(#session-map-head)"></path>
+          <rect class="session" x={s.x} y="104" width="244" height="240" rx="8"></rect>
+          <text class="label green" x={s.x + 14} y="126">session {s.name}</text>
+          <text class="muted" x={s.x + 14} y="141">{s.branch}</text>
+        </>
+      ))
+    }
+
+    {
+      rows.map((_, i) => (
+        <>
+          <path class="link" d={`M170 ${top + i * pitch + 26} H${cellX[1]}`} marker-end="url(#session-map-head)"></path>
+          <path class="link" d={`M170 ${top + i * pitch + 26} H${cellX[0]}`} marker-end="url(#session-map-head)"></path>
+        </>
+      ))
+    }
+
+    {
+      rows.map((r, i) => (
+        <>
+          <rect class="source" x="20" y={top + i * pitch} width="150" height="52" rx="6"></rect>
+          <text class="label" x="34" y={top + i * pitch + 19}>{r.name}</text>
+          <text class="muted" x="34" y={top + i * pitch + 33}>source repo</text>
+          <text class={r.tag ? "rose" : "muted"} x="34" y={top + i * pitch + 46}>{r.tag || "read-only context"}</text>
+          {cellX.map((x) => (
+            <>
+              <rect class={r.kind} x={x} y={top + i * pitch} width="216" height="52" rx="6"></rect>
+              <text class="label" x={x + 12} y={top + i * pitch + 22}>{r.name}</text>
+              <text class="muted" x={x + 12} y={top + i * pitch + 38}>{r.note}</text>
+            </>
+          ))}
+        </>
+      ))
+    }
+
+    {
+      legend.map((l) => (
+        <>
+          <rect class={`chip ${l.hue}-fill`} x={l.x} y="377" width="9" height="9" rx="2"></rect>
+          <text class="muted" x={l.x + 15} y="386">{l.label}</text>
+        </>
+      ))
+    }
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .label {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted {
+    fill: var(--text-muted);
+  }
+
+  .rose {
+    fill: var(--c-rose);
+    font-weight: 700;
+  }
+
+  .violet {
+    fill: var(--c-violet);
+  }
+
+  .green {
+    fill: var(--c-green);
+  }
+
+  .pkg {
+    fill: none;
+    stroke: var(--c-violet);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+    animation: march 1.6s linear infinite;
+  }
+
+  .manifest {
+    fill: color-mix(in srgb, var(--c-violet) 10%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-violet) 55%, var(--border));
+  }
+
+  .session {
+    fill: color-mix(in srgb, var(--c-green) 8%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-green) 55%, var(--border));
+  }
+
+  .source {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .act {
+    fill: color-mix(in srgb, var(--c-cyan) 12%, var(--bg-elevated));
+    stroke: var(--c-cyan);
+  }
+
+  .ref {
+    fill: color-mix(in srgb, var(--c-amber) 12%, var(--bg-elevated));
+    stroke: var(--c-amber);
+  }
+
+  .feed {
+    fill: none;
+    stroke: var(--c-violet);
+    stroke-width: 1.5;
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 5;
+    animation: flow 0.9s linear infinite;
+  }
+
+  .head {
+    fill: var(--text-muted);
+  }
+
+  .violet-fill {
+    fill: var(--c-violet);
+  }
+
+  .green-fill {
+    fill: var(--c-green);
+  }
+
+  .cyan-fill {
+    fill: var(--c-cyan);
+  }
+
+  .amber-fill {
+    fill: var(--c-amber);
+  }
+
+  .rose-fill {
+    fill: var(--c-rose);
+  }
+
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -11;
+    }
+  }
+
+  @keyframes march {
+    to {
+      stroke-dashoffset: -18;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pkg,
+    .link {
+      animation: none;
+    }
+
+    .link {
+      stroke-dasharray: none;
+    }
+  }
+</style>

@@ -1,0 +1,228 @@
+---
+/**
+ * Diagram for "Finishing a session": what `vmono session finish` does to one
+ * member, drawn as four small commit graphs left to right.
+ *
+ * 1. Start: the session branch (green commits) forked from the landing
+ *    branch (rose label) before the landing branch moved on.
+ * 2. Rebase: in the session's worktree, the session's commits are replayed on
+ *    top of the landing branch.
+ * 3. Land: in the source repo, the landing branch moves to the result.
+ * 4. Push: a separate step, dashed because nothing is pushed unless asked;
+ *    the remote still sits where the landing branch started.
+ *
+ * Under the graphs, a band states the all-or-nothing gate. Plain inline SVG in
+ * a 760x256 viewBox, colored from the site tokens like the other diagrams.
+ */
+import Figure from "./Figure.astro";
+
+/** A commit dot: `x` and `y` are panel-relative; `own` marks a session commit. */
+type Dot = { x: number; y: number; own?: boolean };
+
+/**
+ * The four panels. `trunk` and `branch` are the commits on the main row and
+ * on the lower session row; `fork` is the trunk index the session row hangs
+ * from (omitted when the session row is empty). `landing` and `session` are
+ * the x of the commit each branch label points at.
+ */
+const panels = [
+  {
+    title: "Start",
+    sub: "forked earlier",
+    trunk: [{ x: 20, y: 100 }, { x: 50, y: 100 }, { x: 80, y: 100 }] as Dot[],
+    branch: [{ x: 80, y: 145, own: true }, { x: 110, y: 145, own: true }] as Dot[],
+    fork: 1,
+    landing: 80,
+    session: 110,
+    sessionY: 168,
+  },
+  {
+    title: "1. Rebase",
+    sub: "session worktree",
+    trunk: [{ x: 20, y: 100 }, { x: 50, y: 100 }, { x: 80, y: 100 }] as Dot[],
+    branch: [{ x: 110, y: 145, own: true }, { x: 140, y: 145, own: true }] as Dot[],
+    fork: 2,
+    landing: 80,
+    session: 140,
+    sessionY: 168,
+  },
+  {
+    title: "2. Land",
+    sub: "source repo",
+    trunk: [
+      { x: 20, y: 100 },
+      { x: 50, y: 100 },
+      { x: 80, y: 100 },
+      { x: 110, y: 100, own: true },
+      { x: 140, y: 100, own: true },
+    ] as Dot[],
+    branch: [] as Dot[],
+    fork: 0,
+    landing: 140,
+    session: 140,
+    sessionY: 124,
+  },
+] as const;
+
+const origins = [20, 210, 400] as const;
+
+/** Push panel: five commits on one row, spaced tighter than the others. */
+const pushDots: Dot[] = [16, 40, 64, 88, 112].map((x, i) => ({ x, y: 100, own: i > 2 }));
+---
+
+<Figure caption="finish rebases the session's commits onto the landing branch, then moves the landing branch to the result. Pushing is a separate step you ask for.">
+  <svg viewBox="0 0 760 256" role="img" aria-labelledby="finish-flow-title finish-flow-desc">
+    <title id="finish-flow-title">What finishing a session does</title>
+    <desc id="finish-flow-desc">
+      The session's commits are rebased onto the landing branch in the session's worktree, the landing branch in the source repo moves to the result, and pushing is a separate step. Nothing moves unless every member can land.
+    </desc>
+    <defs>
+      <marker id="finish-flow-head" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0 0 L8 4 L0 8 z" class="head"></path>
+      </marker>
+    </defs>
+
+    {
+      panels.map((p, i) => {
+        const x0 = origins[i];
+        const forkDot = p.trunk[p.fork];
+        const first = p.branch[0];
+        return (
+          <>
+            <rect class="panel" x={x0} y="8" width="150" height="178" rx="8"></rect>
+            <text class="title" x={x0 + 12} y="30">{p.title}</text>
+            <text class="muted" x={x0 + 12} y="46">{p.sub}</text>
+
+            <path class="edge" d={`M${x0 + p.trunk[0].x} 100 H${x0 + p.trunk[p.trunk.length - 1].x}`}></path>
+            {first && (
+              <path
+                class="edge own"
+                d={`M${x0 + forkDot.x} ${forkDot.y} L${x0 + first.x} ${first.y} H${x0 + p.branch[p.branch.length - 1].x}`}
+              ></path>
+            )}
+            {[...p.trunk, ...p.branch].map((d) => (
+              <circle class={d.own ? "dot own" : "dot"} cx={x0 + d.x} cy={d.y} r="6"></circle>
+            ))}
+
+            <text class={p.landing > 118 ? "tag rose end" : "tag rose"} x={x0 + Math.min(p.landing, 146)} y="80">landing</text>
+            <text class={p.session > 118 ? "tag green end" : "tag green"} x={x0 + Math.min(p.session, 146)} y={p.sessionY}>session</text>
+          </>
+        );
+      })
+    }
+
+    <rect class="panel dashed" x="590" y="8" width="150" height="178" rx="8"></rect>
+    <text class="title" x="602" y="30">3. Push</text>
+    <text class="muted" x="602" y="46">only when you ask</text>
+    <path class="edge" d="M606 100 H702"></path>
+    {pushDots.map((d) => <circle class={d.own ? "dot own" : "dot"} cx={590 + d.x} cy={d.y} r="6"></circle>)}
+    <text class="tag rose" x="702" y="80">landing</text>
+    <text class="tag" x="654" y="124">origin/main</text>
+    <path class="push" d="M654 140 H702" marker-end="url(#finish-flow-head)"></path>
+    <text class="tag" x="678" y="162">push</text>
+
+    {
+      [172, 362, 552].map((x) => (
+        <path class="link" d={`M${x} 100 H${x + 30}`} marker-end="url(#finish-flow-head)"></path>
+      ))
+    }
+
+    <rect class="gate" x="20" y="202" width="720" height="40" rx="8"></rect>
+    <rect class="gate-bar" x="20" y="202" width="4" height="40" rx="2"></rect>
+    <text class="gate-text" x="40" y="226">Nothing moves unless every member can land: if one cannot, finish exits 2 and changes nothing.</text>
+  </svg>
+</Figure>
+
+<style>
+  svg {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+  }
+
+  .title {
+    font-size: 13px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+
+  .muted {
+    fill: var(--text-muted);
+  }
+
+  .tag {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--text-muted);
+  }
+
+  .tag.end {
+    text-anchor: end;
+  }
+
+  .tag.rose {
+    fill: var(--c-rose);
+  }
+
+  .tag.green {
+    fill: var(--c-green);
+  }
+
+  .panel {
+    fill: var(--bg-elevated);
+    stroke: var(--border);
+  }
+
+  .panel.dashed {
+    stroke-dasharray: 5 4;
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+  }
+
+  .edge.own {
+    stroke: var(--c-green);
+  }
+
+  .dot {
+    fill: var(--text-muted);
+  }
+
+  .dot.own {
+    fill: var(--c-green);
+  }
+
+  .link {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+  }
+
+  .push {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+
+  .head {
+    fill: var(--text-muted);
+  }
+
+  .gate {
+    fill: color-mix(in srgb, var(--c-amber) 8%, var(--bg-surface));
+    stroke: color-mix(in srgb, var(--c-amber) 35%, var(--border));
+  }
+
+  .gate-bar {
+    fill: var(--c-amber);
+  }
+
+  .gate-text {
+    font-size: 11.5px;
+    fill: var(--text-secondary);
+  }
+</style>
