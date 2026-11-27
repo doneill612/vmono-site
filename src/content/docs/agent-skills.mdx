@@ -1,0 +1,68 @@
+---
+title: Agent skills
+description: The vmono-app skill you install once for agents outside a session, and the skill vmono writes into every session.
+---
+
+vmono has two skills, for the two places a coding agent can be.
+
+| Skill | Where the agent is | Teaches it to | How it gets there |
+| --- | --- | --- | --- |
+| `vmono-app` | Anywhere outside a session | Find out what packages and sessions exist, define a package, start a session and hand it to you | [You install it](#installing-the-app-skill), once |
+| `vmono` | Inside a session | Read the package, record what every future session needs, check status, update and push | vmono writes it into every session; Claude Code gets it as a [plugin](/docs/claude-code-plugin) |
+
+You only need to install `vmono-app`. The names differ so that a copy installed for your user does not shadow, or collide with, the skill in a session.
+
+## Installing the app skill
+
+<CodeTabs tabs={[{ id: "npx", label: "npx skills" }, { id: "binary", label: "From the binary" }]}>
+<Fragment slot="npx">
+
+```sh
+npx skills add doneill612/vmono -g
+```
+
+</Fragment>
+<Fragment slot="binary">
+
+```sh
+dir=~/.claude/skills/vmono-app
+mkdir -p "$dir/references"
+vmono skill > "$dir/SKILL.md"
+for ref in $(vmono skill --list); do vmono skill "$ref" > "$dir/references/$ref.md"; done
+```
+
+</Fragment>
+</CodeTabs>
+
+[`npx skills`](https://github.com/vercel-labs/skills) needs Node, and installs into Claude Code, Codex, OpenCode, Pi, Cursor and [other agents](https://github.com/vercel-labs/skills#supported-agents). `-g` installs it for your user, so it is there in every project; leave it off to add it to the current project only. `npx skills update` takes up newer versions.
+
+Without Node, write it from the binary into your harness's skills directory, as above for Claude Code. Codex and Pi read `~/.agents/skills`, and OpenCode `~/.config/opencode/skills`. Run it again after upgrading vmono.
+
+An agent with neither can still find it: `vmono --help` tells it to run `vmono skill`.
+
+## What it does
+
+`SKILL.md` is short: when to use vmono, what the agent must not do, and an index. The detail is in reference files that the agent reads only when its task calls for them.
+
+| Reference | Covers |
+| --- | --- |
+| `concepts` | Packages, sessions and members |
+| `setup` | A missing or unconfigured vmono, and repos it does not know |
+| `state` | What exists and where each piece of work stands |
+| `packages` | Defining a package and what it says |
+| `sessions` | Starting work, building on a branch, and handing a session to you |
+
+The agent asks before it creates or changes anything. It does not remove or push anything, and it leaves [`vmono package init`](/docs/package-init) for you to run. Like the session skill, this is guidance: what an agent may actually do is [enforced by your harness](/docs/safety#what-your-harness-enforces).
+
+## Versions
+
+The skill describes what vmono does and names its commands, but leaves their flags and output to `vmono <command> --help`, which it tells the agent to read before using one. So a skill installed from the repository works with an older or newer vmono. `vmono skill` always prints the copy that matches your binary.
+
+## Printing a skill
+
+| Command | Prints |
+| --- | --- |
+| `vmono skill` | The app skill's `SKILL.md` |
+| `vmono skill <reference>` | One of its references |
+| `vmono skill --list` | The names of the references |
+| `vmono skill --session` | The skill used inside a session |

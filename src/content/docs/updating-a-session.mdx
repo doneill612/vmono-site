@@ -3,7 +3,7 @@ title: Updating a session
 description: Bring each branch up to date with its base, by rebasing until it is pushed and merging afterward.
 ---
 
-`vmono session update [pkg/session]`, or `u` on the session in the TUI, fetches the sources and takes in what is new. How each active member is updated depends on whether its branch has been pushed. Your local `main` is neither read nor moved.
+`vmono session update [pkg/session]`, or `u` on the session in the TUI, fetches the sources and takes in what is new. How each active member is updated depends on whether its branch has been pushed. Your local branches are never moved, and are read only where something is built on one: a base given as a plain name, or a session built on a [local branch](/docs/starting-a-session#what-a-new-branch-starts-from).
 
 <UpdateFlow />
 
@@ -13,7 +13,7 @@ description: Bring each branch up to date with its base, by rebasing until it is
 | --- | --- |
 | Not pushed | Rebases your commits onto the base. Nobody else has them |
 | Pushed | Merges its remote copy and then the base, fast-forwarding where it can, so pushing again never needs force |
-| Built on another branch with `--from` | Follows that branch; once it has merged, moves to the base, leaving its commits behind |
+| Built on another branch with `--from` | Follows that branch, local or remote as chosen; once it has merged, moves to the base, leaving its commits behind. A local branch that is only behind its remote copy does not count as merged |
 | Already merged | Leaves it alone; see [Merging and cleanup](/docs/after-merging) |
 | Remote branch deleted | Skips it |
 | Its history, or the remote copy's, was rewritten | Skips it: merging would bring the old commits back |

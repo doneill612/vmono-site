@@ -12,7 +12,7 @@ vmono integration install herdr
 herdr server reload-config
 ```
 
-Every session gets a herdr workspace of its own, labeled `package/session` and rooted at the session. Opening a session creates it, or goes to it when it already exists, and never starts a second harness. When the harness exits, the workspace's shell stays, and opening the session again starts the harness there. Removing the vmono session (`session rm`, `delete`) closes its workspace, unless vmono is running in it.
+Every session gets a herdr workspace of its own, labeled `package/session` and rooted at the session. Opening a session creates it, or goes to it when it already exists, and never starts a second harness. When the harness exits, the workspace's shell stays, and opening the session again starts the harness there. Removing the vmono session (`session rm`, `delete`) closes its workspace, with everything running in it, wherever you remove it from, a shell in the workspace included. It is left open only when the agent in it is the one removing the session.
 
 The install also binds `prefix + shift + v`, which opens the vmono TUI in a popup. Launching a session from it goes to that session's workspace and closes the popup.
 
@@ -36,6 +36,6 @@ Under herdr, the TUI's sessions view has an `agent` column that says what each a
 ## Details
 
 - [Initializing a package](/docs/package-init) runs in a place of its own, `package/.init`. When the agent has suggested commands, a notification says they will be there to review.
-- vmono finds its workspaces by a token it sets on each one, so renaming a workspace does not lose it. A herdr restart drops the tokens; after one, workspaces are found by label and directory instead.
+- vmono finds its workspaces by a token it sets on each one, so neither renaming a workspace nor leaving its directory loses it. A herdr restart drops the tokens; after one, workspaces are found by label and directory instead.
 - Checked against herdr 0.9.5. Not supported on Windows.
 - `launcher` decides where a harness starts. See [The launcher setting](/docs/configuration#launcher).

@@ -3,7 +3,7 @@ title: Pushing a session
 description: Publish each member's branch for a pull request, never forced and only when you ask.
 ---
 
-Each active member of a session is on a branch of its own repo, and there is nothing to merge back. `vmono session push [pkg/session]`, or `P` on the session in the TUI, publishes those branches for you to open pull requests from. It is the only vmono command that pushes.
+Each active member of a session is on the session's branch, in its own repo, and there is nothing to merge back. `vmono session push [pkg/session]`, or `P` on the session in the TUI, publishes those branches for you to open pull requests from. It is the only vmono command that pushes.
 
 <PushFlow />
 
@@ -37,6 +37,8 @@ Each member's branch goes to the remote branch it tracks or, the first time, to 
 To publish a branch again after its remote copy was deleted, run `git branch --unset-upstream BRANCH` in the member, then push.
 
 Nothing is forced, and a branch is never pushed to the branch it is meant to merge into. Members are independent: one that is blocked or refused does not stop the others.
+
+A session [built on a local branch](/docs/starting-a-session#what-a-new-branch-starts-from) that has commits you never pushed publishes those along with its own, and `vmono session review` counts them.
 
 ## Flags and exit code
 

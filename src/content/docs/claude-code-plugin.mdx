@@ -19,6 +19,10 @@ The hook runs the bare command `vmono`, so `vmono` must be on `PATH` for the har
 
 If your organization blocks skills-directory plugins, or your Claude Code predates them, `/vmono` still loads as an ordinary project skill and only the hook and the three commands are missing. To turn the plugin off for one session, set `"vmono@skills-dir": false` under `enabledPlugins` in that session's `.claude/settings.local.json`, or run `claude plugin disable vmono@skills-dir`.
 
+## Outside a session
+
+The plugin is only in sessions. For an agent working outside one, install the [`vmono-app` skill](/docs/agent-skills).
+
 ## Other harnesses
 
 The other harnesses have no plugin strategy yet, so they get the same `SKILL.md` on its own, with the guidance behind the three commands (checking status, proposing a note before writing it, pushing) in it: OpenCode under `.opencode/skills/vmono/`, and Codex and Pi under `.agents/skills/vmono/`, which both scan from the session root. They do not get the live state at the start of a conversation; the skill tells the agent to run `vmono show --json` and `vmono status --json` instead.

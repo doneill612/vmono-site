@@ -15,7 +15,7 @@ export type Hue = "cyan" | "green" | "violet" | "amber" | "rose";
 const GROUPS: { title: string; hue: Hue; ids: string[] }[] = [
   { title: "Getting started", hue: "cyan", ids: ["index", "install", "quick-start"] },
   { title: "Using vmono", hue: "green", ids: ["concepts", "tui", "package-init", "setup-and-hooks", "starting-a-session", "updating-a-session", "pushing-a-session", "after-merging"] },
-  { title: "Integrations", hue: "violet", ids: ["claude-code-plugin", "tmux", "herdr"] },
+  { title: "Integrations", hue: "violet", ids: ["claude-code-plugin", "agent-skills", "tmux", "herdr"] },
   { title: "Reference", hue: "amber", ids: ["commands", "configuration", "authentication", "safety"] },
 ];
 

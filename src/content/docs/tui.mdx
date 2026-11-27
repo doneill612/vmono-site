@@ -5,15 +5,15 @@ description: A full-screen console for packages, sessions and members, driven by
 
 `vmono` with no arguments opens a full-screen console. A one-line bar at the top shows where you are (`packages › payments › work`) and how many packages there are; a one-line footer shows the few keys worth knowing and any notice. Between them is the list, and on a terminal 100 columns or wider a preview of the highlighted row sits beside it: a package's purpose, sessions and members, a session's branch and the live state of each member.
 
-You rarely need a key. **`enter` opens a menu of everything you can do to the highlighted row**, with the most common action first: `Sessions` for a package, `Launch` for a session. Each entry shows its shortcut, and pressing that key from the list (or inside the menu) does the same thing, so the menu is also how you learn them. `?` lists every shortcut for the view you are on.
+You rarely need a key. **`enter` opens a menu of everything you can do to the highlighted row**, with the most common action first: `Sessions` for a package, `Launch` for a session. Each entry shows its shortcut, and pressing that key from the list (or inside the menu) does the same thing, so the menu is also how you learn them. `?` lists every shortcut for the view you are on, and `t` there says what vmono's [terms](/docs/concepts) mean.
 
 ## Views
 
 | View | Opened by | Shows |
 | --- | --- | --- |
-| packages | start | Every package: members (`2A 1R` = two active, one reference), session count, harness, clean or dirty (any session), last opened. A package from before sessions shows `migrate` |
+| packages | start | Every package: members (`2 active, 1 read-only`; a read-only member is a reference member), session count, harness, clean or dirty (any session), last opened. A package from before sessions shows `migrate` |
 | sessions | `→` on a package | Per session: branch, its state (clean, dirty, pushed, remote deleted, or merged and how), last opened. Merged sessions are dimmed and sorted below the rest |
-| members | `m` on a session | Per member in that session: mode, branch or ref, HEAD, how far it is published, dirty and untracked counts, role |
+| members | `m` on a session | Per member in that session: mode (`active` or `read-only`), what is checked out (a branch or ref), counts of changed and new (untracked) files, how far it is published, HEAD, role |
 | describe | `d` | Purpose, context, notes, sessions and members for a package; add a session's branch and live state when opened from one; location and git state for a member |
 | repos | palette | Every known repo and how many packages use it; `→` lists those packages |
 | harnesses | palette | Configured harnesses, whether each is on `PATH`, and the default |
@@ -35,6 +35,7 @@ None of these are required; the menu does the same things.
 | `o` / `l` | Open the most recently opened session with the default harness / pick a harness. A package with no sessions asks you to start one |
 | `d` | Describe |
 | `n` / `e` | New package / edit the selected one (applies to every session) |
+| `C` | [Clone the package](/docs/package-init#cloning-a-package): the new-package form filled in from it, with everything editable |
 | `i` | [Initialize the package](/docs/package-init): pick a harness to explore it and record an overview |
 | `v` | Review the [commands an initialization suggested](/docs/package-init#suggested-commands) |
 | `s` / `f` | Sync every session / fetch every member's source |
@@ -47,7 +48,7 @@ None of these are required; the menu does the same things.
 | `enter` | Open the menu: launch, launch with…, members, describe, sync, fetch, update, copy path, push, delete |
 | `o` | Launch the default harness in the session |
 | `l` | Pick a harness |
-| `n` | [Start a new session](/docs/starting-a-session#from-the-tui): a name, and optionally a prefix, a branch, a remote branch to work on (`track`, or `ctrl+t`) or to build on (`from`), and a branch per active member |
+| `n` | Start a new session: see [the new session dialog](#the-new-session-dialog) |
 | `P` | [Push](/docs/pushing-a-session#from-the-tui) the session: shows where each member's branch goes, what is uncommitted and left out, or what blocks it, then `y` pushes. Never forced |
 | `m` / `d` | Members of the session / describe it |
 | `u` | [Update](/docs/updating-a-session) the session: rebase branches that are not pushed, and merge what is new into those that are |
@@ -66,6 +67,37 @@ Members, repos and harnesses have menus too (`enter`), with the same keys where 
 Launching starts the harness where the `launcher` setting says. With the [tmux integration](/docs/tmux), a launch switches your tmux client to the session's own tmux session, and a TUI opened from the `prefix + V` popup closes once it has. With [herdr](/docs/herdr), a launch goes to the session's workspace, and a TUI opened from the `prefix + shift + v` popup closes. If tmux or herdr fails, the TUI stays open and shows its message.
 
 Creating a package returns to the packages screen; start a session from there (`enter`, then `New session`, or `→` then `n`) when you want one.
+
+## The new session dialog
+
+| Field | What it is |
+| --- | --- |
+| `session` | The name of this piece of work. A space types a hyphen |
+| `prefix` | Optional. Goes before the name, with a slash. Together they are the branch every active member is on |
+| `build on` | Optional. A branch every new branch starts on, in place of each member's base |
+| a row per active member | What that member starts on: `build on` unless you choose another branch for it, or its base |
+| `read-only` per reference member | What it is checked out at, in place of the package's ref |
+
+`tab` and `shift+tab` move between fields, the dialog explains the one you are in, `enter` starts the session and `esc` cancels. `space` on a `build on`, member or `read-only` field opens the branch picker; a `read-only` field also takes a typed branch, tag or commit.
+
+`build on` cannot be the session's own branch, local or remote; the dialog says so as soon as the two match. If that branch is already on a remote, creating the session asks whether to work on it. Yes continues it there, and members without it get a new branch of that name. No returns to the dialog with nothing created. If the branch exists only locally, you are asked whether to reuse it.
+
+### Picking a branch
+
+The picker lists your local branches and the remote's as separate rows, since they are often at different commits:
+
+```text
+▸ none: start from each member's base
+  main          2 behind origin/main      alpha billing · 3d ago
+  origin/main                             alpha billing · 1h ago
+```
+
+- `origin/main`, in its own color, is the remote's branch as of the fetch.
+- `main` is your local branch, exactly as it is. The dialog tags it `(local)` once picked.
+- A local row says how far it is from the remote's when they differ, for example `2 behind origin/main` or `1 ahead, 2 behind origin/main`. A member's name comes first when only that member differs.
+- A row says which members have the branch. Those without it start from their base.
+
+It opens on what the last fetch saw and fetches meanwhile, so it works offline too. Type to filter. [What a new branch starts from](/docs/starting-a-session#what-a-new-branch-starts-from) covers what each choice does later, on `update` and `push`.
 
 ## The repo finder
 

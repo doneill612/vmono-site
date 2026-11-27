@@ -1,56 +1,90 @@
 ---
 title: Starting a session
-description: Give each piece of work a worktree of every member, each active one on a branch you can push.
+description: Give each piece of work a worktree of every member, the active ones all on one branch you can push.
 ---
 
-`vmono session new [pkg] <name>`, or `n` on the sessions view in the TUI, starts a session. Every active member gets a worktree on a branch, and that branch is the result: it is what you [push](/docs/pushing-a-session), and what you open a pull request from. It starts from the member's base (`origin/main`, usually), whatever its source repo has checked out, and tracks nothing until it is pushed.
+`vmono session new [pkg] <name>`, or `n` on the sessions view in the TUI, starts a session. Every active member gets a worktree on one branch, named after the session, and that branch is the result: it is what you [push](/docs/pushing-a-session), and what you open a pull request from. A new branch starts from the member's base (`origin/main`, usually), whatever its source repo has checked out, and tracks nothing until it is pushed.
 
 ```sh
-vmono session new payments token-refresh                  # every member on token-refresh
-vmono session new payments token-refresh --prefix feat    # on feat/token-refresh
-vmono session new payments review --track api=fix/login   # api on a branch that is already on the remote
+vmono session new payments token-refresh                 # every active member on token-refresh
+vmono session new payments PLAT-412 --prefix fix         # on fix/PLAT-412
+vmono session new payments timeout --prefix fix --track  # continue fix/timeout, already on the remote
+vmono session new payments retry-ui --from origin/feat/retry  # build on a branch that has not merged
+vmono session new payments try-v2 --from contracts=v2         # read the contracts reference at v2
 ```
 
-## Choosing branches
+## Choosing the branch
 
 | To | Pass |
 | --- | --- |
-| Name branches after the session | nothing: session `token-refresh` works on `token-refresh` |
+| Name the branch | the session's name: `token-refresh` is on `token-refresh` |
 | Put a prefix in front | `--prefix feat`: `feat/token-refresh` |
-| Choose the name | `--branch fix/PLAT-412`, or `--branch MEMBER=B` for one member (repeatable) |
-| Work on a branch that is on the remote, such as a teammate's or an open pull request's | `--track BRANCH` or `--track MEMBER=BRANCH` |
-| Build on something other than the base | `--from REF` or `--from MEMBER=REF` |
+| Work on that branch when it is already on a remote, such as a teammate's or an open pull request's | `--track`, or answer yes in the TUI |
+| Build on something other than the base | `--from REF` or `--from MEMBER=REF`, or `build on` in the TUI |
+| Read a reference member at something other than the package's ref | `--from MEMBER=REF`, or its `read-only` field in the TUI |
 | Take up a local branch that already exists | `--reuse-branch` |
 
-`vmono new` takes the same flags along with `--session`, to start the first session as it defines the package. A prefix belongs to the default name, so it cannot be combined with `--branch` for every member.
+`vmono new` takes the same flags along with `--session`, to start the first session as it defines the package.
+
+Session names take letters, digits, hyphens and underscores, and start and end with a letter or digit. So the session's name is the last part of its branch, and the prefix is everything before it: to continue `fix/PLAT-412`, start the session `PLAT-412` with the prefix `fix`. A branch whose last part holds anything a session name cannot, such as the dot in `release/v1.2`, cannot be worked on in a session.
 
 ## Working on a remote branch
 
-`--track` fetches, then checks out the branch itself, tracking the remote one. A local copy is brought up to it when it is only behind. A member whose remote lacks the branch gets a new one of that name, with a warning. Naming the member makes that an error, and so does a branch that no member's remote has (exit `3`).
+Every new session fetches the sources first, even with `fetch_on_create` off, to learn whether its branch is already on a remote. If it is, nothing is created until you say to work on it: the TUI asks, and the command line needs `--track`.
+
+Working on it checks the branch out itself, tracking the remote one. A local copy is brought up to it when it is only behind. A member whose remote lacks the branch gets a new one of that name, with a warning, and `--track` fails (exit `3`) when no member's remote has it. A remote branch that differs from the session's only in case is refused: spell the name and prefix like it.
 
 A branch that is checked out elsewhere, your source repo included, cannot be in a session at the same time, so switch the source to another branch first.
 
 ## Building on unmerged work
 
-`--from` is for work stacked on a branch that has not merged. The session remembers it, measures your commits against it, and [follows it on update](/docs/updating-a-session). A member that has nothing by that name starts from its base, with a warning. Naming the member makes that an error, and so does a name that no member has.
+`--from` is for work stacked on a branch that has not merged. `--from REF` is for every active member that has it, and `--from MEMBER=REF` is for one. The session remembers it, measures your commits against it, and [follows it on update](/docs/updating-a-session). A member that has nothing by that name starts from its base, with a warning. Naming the member makes that an error, and so does a name that no member has.
 
-`--track` and `--from` cannot both apply to the same member, since a tracked branch starts where it is.
+It cannot be the session's own branch, and does not apply to a member that works on the branch from its remote, since that branch starts where it is. Whether it means your local branch or the remote's depends on [how you name it](#what-a-new-branch-starts-from).
+
+## Reading a reference at another ref
+
+A reference member gets no branch. It is checked out at the package's `ref`, or at what `--from MEMBER=REF` names for this session: a branch, named [the same ways](#what-a-new-branch-starts-from), a tag or a commit. Use it when your work depends on changes there that have not merged. `--from REF`, for every member, leaves reference members at the package's ref.
+
+The session remembers the ref, and `vmono sync --refs` moves a clean reference member to its newest commit. If the branch's remote copy is deleted, `sync --refs` returns the member to the package's ref once that has the branch's work, and leaves it where it is until then.
+
+## What a new branch starts from
+
+Your local branches and the ones on the remote are often at different commits. Every new session fetches first, but a fetch only updates what is known of the remote, such as `origin/main`. It never moves a local branch such as `main`. So what a new branch starts from depends on which of the two is named.
+
+| Named | The new branch starts at |
+| --- | --- |
+| Nothing, with the default base `origin/HEAD` | The remote's default branch, as just fetched |
+| Nothing, with a base such as `origin/develop` in the package | The remote's `develop`, as just fetched |
+| Nothing, with a base given as a plain name such as `develop` | **Your local** `develop`, which may be behind. It has to exist locally |
+| `origin/x`: the `origin/x` row in the TUI, or `--from origin/x` | The remote's `x`, as just fetched |
+| Your local `x`: the `x` row in the TUI, or `--from refs/heads/x` | Your local `x`, even when it is behind, with any commits you have not pushed |
+| `--from x`, a plain name on the command line | Whichever of local and remote `x` is further ahead, and your local one if each has commits the other lacks. When only one exists, that one |
+
+The first two rows are what you get by building on nothing, and are never affected by the state of your local branches.
+
+[`update`](/docs/updating-a-session) follows the same choice for as long as the session is built on that branch: pick `origin/x` and it takes in what is pushed to `x`; pick your local `x` and it takes in what you commit to it, and nothing that is only on the remote.
+
+Building on a local branch with commits that were never pushed puts them in the session's branch. Once the session has commits of its own, [pushing it](/docs/pushing-a-session) publishes those commits too, and `vmono session review` counts them.
+
+Two things leave a new branch further back than the table says, each with a warning:
+
+- A source that cannot be fetched, for lack of a network or credentials, is used as of its last fetch.
+- A source with no `origin/HEAD` gives the default base as whatever the source repo has checked out.
 
 ## Names that are refused
 
-A branch name is refused if:
+A session's branch is refused if:
 
 - it is the branch the work merges into,
 - it already exists locally, unless you pass `--reuse-branch` (the TUI asks instead), or
-- it is already on the member's remote, where a push would meet someone else's work. Use `--track` to work on it.
+- it is already on the member's remote and you have not said to work on it (`--track`).
 
 Git also cannot hold both `feat` and `feat/spike`, and vmono says so rather than renaming either. Two packages that share a repo cannot have a session branch of the same name checked out at once; a prefix keeps them apart.
 
 ## From the TUI
 
-The new-session prompt asks for a name, and optionally a prefix, a branch, a remote branch to work on (`track`) or to build on (`from`), and a branch for each active member. Empty fields show the branch they will use.
-
-`space` or `enter` on `track` or `from` opens a picker of the members' remote branches, and `ctrl+t` opens the one for `track` from any field. The picker lists what the last fetch saw while it fetches, so it works offline too.
+`n` on the sessions view opens the new session dialog: a name, and optionally a prefix, a branch to `build on` for every member or one per member, and what each reference member is checked out at (its `read-only` field). Each field explains itself as you move to it, and `space` opens a picker that lists local and remote branches as separate rows. If the session's branch is already on a remote, creating the session asks whether to work on it; if it exists only locally, whether to reuse it. See [the new session dialog](/docs/tui#the-new-session-dialog).
 
 ## Next
 
