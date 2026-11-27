@@ -36,6 +36,7 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono delete <pkg> [--force] [--delete-branches]` | Tear down a package and every one of its sessions |
 | `vmono inspect [pkg[/session]]` | A session's full resolved model as JSON, including each member's `git_common_dir` |
 | `vmono doctor [--fix]` | Find drift, migrate packages and sessions from [earlier versions](/docs/after-merging#upgrading-from-earlier-versions), and rebuild the index |
+| `vmono skill [reference] [--list \| --session]` | Print the [skill](/docs/agent-skills) that teaches a coding agent to use vmono, one of its references, or the skill used inside a session |
 | `vmono shell-init zsh\|bash\|fish\|pwsh` | Print a `vcd <pkg>[/session]` function |
 | `vmono integration ls [--json]` | List integrations and whether each is installed |
 | `vmono integration install <name> [--no-launcher] [--key K]` | Write an integration's files, wire them into the tool, and turn on its launcher. `--key` picks the key that opens the TUI (herdr). See [tmux](/docs/tmux) and [herdr](/docs/herdr) |
