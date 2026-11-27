@@ -1,6 +1,6 @@
 ---
 title: Initializing a package
-description: Have a harness explore a package's members and record an overview, with vmono package init.
+description: Have a harness explore a package's members and record an overview, with vmono package init, then reuse it in a clone.
 ---
 
 ```sh
@@ -17,6 +17,20 @@ vmono checks every member out, detached at its base or ref, into a temporary `.i
 Your own purpose, roles, context and notes are never changed. The agent then shows you what it recorded, and you ask for corrections. When the harness exits, the checkout is removed and vmono says what was recorded. Sessions, branches and setup commands are not involved, and a package needs no session to be initialized.
 
 When members are added or removed afterward, `vmono show` and the TUI say the overview is out of date. Edit it with `vmono describe --overview`; an empty one removes it.
+
+## Cloning a package
+
+A clone reuses what an initialization learned, for instance to work on repos that so far were only references:
+
+```sh
+vmono package clone docs work --all-active --ref artifacts
+```
+
+The new package has the members of `docs` with the same roles, copied files and setup and teardown commands, plus its purpose, context, notes, default harness, overview and [suggested commands](#suggested-commands), reviewed or not. Only the modes differ: `--all-active` and `--all-ref` set every member's, and `--active` and `--ref` take member names and override them. A member whose mode changes moves to the default path of its new mode and keeps what it comes from: an active member's base becomes its ref, and a ref becomes its base. A ref that is not a branch, such as a tag or a commit, cannot be merged into, so that member gets the default base and vmono says so. Sessions are not copied.
+
+In the TUI, `C` on a package opens the new-package form filled in from it. Everything there can be changed, including the members; adding or removing one marks the overview out of date.
+
+The two packages are independent afterward: initializing or editing one leaves the other as it was. So that an overview holds in either, initialization records members by name and leaves out which of them can be edited and where they are checked out. One recorded before vmono asked for that may still say; `vmono describe --overview` edits it, and `vmono package init` replaces it.
 
 ## Suggested commands
 
