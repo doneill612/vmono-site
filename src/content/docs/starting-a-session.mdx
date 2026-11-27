@@ -20,8 +20,8 @@ vmono session new payments try-v2 --from contracts=v2         # read the contrac
 | Name the branch | the session's name: `token-refresh` is on `token-refresh` |
 | Put a prefix in front | `--prefix feat`: `feat/token-refresh` |
 | Work on that branch when it is already on a remote, such as a teammate's or an open pull request's | `--track`, or answer yes in the TUI |
-| Build on something other than the base | `--from REF` or `--from MEMBER=REF` |
-| Read a reference member at something other than the package's ref | `--from MEMBER=REF` |
+| Build on something other than the base | `--from REF` or `--from MEMBER=REF`, or `build on` in the TUI |
+| Read a reference member at something other than the package's ref | `--from MEMBER=REF`, or its `read-only` field in the TUI |
 | Take up a local branch that already exists | `--reuse-branch` |
 
 `vmono new` takes the same flags along with `--session`, to start the first session as it defines the package.
@@ -84,7 +84,7 @@ Git also cannot hold both `feat` and `feat/spike`, and vmono says so rather than
 
 ## From the TUI
 
-The new-session dialog asks for a name, and optionally a prefix and a branch to build on. A space in the name types a hyphen. If the session's branch is already on a remote, creating the session asks whether to work on it: yes continues it there, and members without it get a new branch of that name; no returns to the dialog with nothing created. If the branch exists only locally, you are asked whether to reuse it.
+`n` on the sessions view opens the new session dialog: a name, and optionally a prefix, a branch to `build on` for every member or one per member, and what each reference member is checked out at (its `read-only` field). Each field explains itself as you move to it, and `space` opens a picker that lists local and remote branches as separate rows. If the session's branch is already on a remote, creating the session asks whether to work on it; if it exists only locally, whether to reuse it. See [the new session dialog](/docs/tui#the-new-session-dialog).
 
 ## Next
 
