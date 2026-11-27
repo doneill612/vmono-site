@@ -62,18 +62,20 @@ Each branch that is kept or deleted is listed with the reason, before you confir
 
 ## Taking a branch up again
 
-Sessions are disposable. To return to a branch, for review feedback say, start a session with `--track BRANCH`, or with `--branch BRANCH --reuse-branch` if it was never pushed. See [Starting a session](/docs/starting-a-session).
+Sessions are disposable. To return to a branch, for review feedback say, start one of the same name and prefix with `--track`, or with `--reuse-branch` if it was never pushed. See [Starting a session](/docs/starting-a-session).
 
 There is no command that merges into a local branch. To do that yourself, update the session and run `git merge --ff-only BRANCH` in the source repo.
 
 ## Upgrading from earlier versions
+
+Earlier versions let a new session name its branch, one for each member if need be. Now every active member of a new session is on `[PREFIX/]SESSION`. `--branch` is gone and `--track` takes no value, so a script that passed `--track fix/timeout` now starts the session `timeout` with `--prefix fix --track`. In the TUI, the `branch` and `track` fields are gone, and you are asked about a branch that is already on a remote. Sessions made with other branch names work as they are.
 
 Earlier versions kept a session's work on a private branch and landed it on another with `vmono session finish`. Such a session works as it is, and pushes its own branch under the name it has. `vmono doctor --fix` converts it: the session file is rewritten, an upstream of `origin/main` that git gave the branch is dropped, and any landing branch with work that is on no remote is listed, since vmono no longer pushes those.
 
 | Before | Now |
 | --- | --- |
 | `vmono session finish` | `vmono session review`, then `vmono session push` |
-| `vmono session into`, `--into` | `--branch`, `--track` or `--from` on `vmono session new` |
+| `vmono session into`, `--into` | `--track` or `--from` on `vmono session new` |
 | The `post_finish` hook | Ignored with a notice; use `post_push` |
 | The `branch_prefix` setting | No longer read; pass `--prefix` when starting a session |
 | `/vmono:finish` in Claude Code | `/vmono:push` |

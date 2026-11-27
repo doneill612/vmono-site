@@ -10,8 +10,8 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `vmono` | Open the TUI |
 | `vmono init [--source-root P]... [--package-root P]` | Write the global config without prompts |
 | `vmono ls` / `vmono repos` | List packages / known repos |
-| `vmono new <pkg> --active a,b [--ref c] [--purpose-file F] [--context-file F] [--harness H] [--session S [--prefix P] [--branch [MEMBER=]B]... [--track [MEMBER=]B]... [--from [MEMBER=]REF]... [--reuse-branch]]` | Define a package, and optionally start its first session |
-| `vmono session new [pkg] <name> [--prefix P] [--branch [MEMBER=]B]... [--track [MEMBER=]B]... [--from [MEMBER=]REF]... [--reuse-branch]` | Start a session: a worktree of every member, each active one on a branch. See [Starting a session](/docs/starting-a-session) |
+| `vmono new <pkg> --active a,b [--ref c] [--purpose-file F] [--context-file F] [--harness H] [--session S [--prefix P] [--from [MEMBER=]REF]... [--track] [--reuse-branch]]` | Define a package, and optionally start its first session |
+| `vmono session new [pkg] <name> [--prefix P] [--from [MEMBER=]REF]... [--track] [--reuse-branch]` | Start a session: a worktree of every member, the active ones all on one branch. See [Starting a session](/docs/starting-a-session) |
 | `vmono session ls [pkg]` | List a package's sessions and whether each is in progress, pushed or merged |
 | `vmono session update [pkg/session] [--member NAME]... [--no-fetch] [--dry-run] [--json]` | Fetch, then rebase each branch that is not pushed onto its base, and merge what is new into each that is. See [Updating a session](/docs/updating-a-session) |
 | `vmono session review [pkg/session] [--member NAME]... [--json]` | Show what a push would publish, changing nothing (the read-only form of `session push`) |
@@ -47,6 +47,6 @@ Every read command takes `--json`. Anything that could discard work refuses unle
 | `0` | Success |
 | `1` | Error |
 | `2` | Refused because work would be lost; or, for `session push` and `review`, because a member is blocked; or, for `session update`, because a member was skipped or conflicted; or because a `pre_remove` hook set to abort kept the session |
-| `3` | Not found, including a `--track` or `--from` for something that the named member, or every member, lacks |
+| `3` | Not found, including a `--track` when no member's remote has the session's branch, or a `--from` for something that the named member, or every member, lacks |
 
 When a harness started with `vmono open` exits, vmono exits with its status.

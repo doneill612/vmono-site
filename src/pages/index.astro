@@ -25,7 +25,7 @@ const windows = "irm https://github.com/doneill612/vmono/releases/latest/downloa
 const tree: { path: string; kind: "pkg" | "ses" | "act" | "ref" | "dim"; note: string }[] = [
   { path: "payments/", kind: "pkg", note: "package: defined once" },
   { path: "├── .vmono/manifest.toml", kind: "dim", note: "purpose, members, roles" },
-  { path: "└── token-refresh/", kind: "ses", note: "session: its own branches" },
+  { path: "└── token-refresh/", kind: "ses", note: "session: its own branch" },
   { path: "    ├── AGENTS.md", kind: "dim", note: "rendered from the package" },
   { path: "    ├── api/", kind: "act", note: "active: a worktree you edit" },
   { path: "    ├── web/", kind: "act", note: "active" },
@@ -65,7 +65,7 @@ const features: { hue: Hue; title: string; body: string }[] = [
   {
     hue: "violet",
     title: "Define once, session per task",
-    body: "A package is a set of repos with a purpose. More work on the same repos is a new session with its own branches, so nothing is set up twice.",
+    body: "A package is a set of repos with a purpose. More work on the same repos is a new session with its own branch, so nothing is set up twice.",
   },
   {
     hue: "amber",

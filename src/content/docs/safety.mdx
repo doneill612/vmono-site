@@ -7,7 +7,7 @@ To report a vulnerability, see the [security policy](https://github.com/doneill6
 
 ## What vmono guarantees
 
-- A source repo's working tree and checked-out branch are never touched. Only the branches sessions work on move.
+- A source repo's working tree and checked-out branch are never touched. Only the branches sessions work on move. Starting a session fetches every member's source first, which updates its remote-tracking branches and prunes those deleted on the remote; it moves no local branch.
 - A dirty worktree is never removed without `--force` (or typing the package or session name in the TUI). Removing a member, deleting a session or deleting a package checks every session it reaches, and one dirty worktree refuses the whole operation.
 - A branch with work that is not merged is never deleted, even with `--force`. A branch vmono made that nothing was committed to, and that is on no remote, is deleted with its worktree. `--delete-branches` also deletes branches whose work is on their base: their commits themselves, a copy of each (a rebase merge), or one commit making the same change (a squash merge). vmono establishes that by comparing changes, so a squash merge leaves the branch's own commits behind when it goes; their content is on the base, and git keeps them in the reflog for a while. A merge that cannot be recognized keeps the branch.
 - Removing a worktree is refused when commits made on a detached HEAD are on no branch. Commits on a branch stay with the branch.

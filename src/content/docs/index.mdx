@@ -5,7 +5,7 @@ description: Define a set of repos once, then start a session whenever there is 
 
 ![The vmono TUI showing the packages view](/vmono-ex.png)
 
-vmono manages **packages** and their **sessions**. A package is a set of git repos defined once, with a purpose that explains why they belong together. A session is one piece of work on a package: its own branches, and a directory holding a git worktree of every member, which a coding harness opens and sees all of them. Instead of piecing together a workspace for your agent by hand each time, and keeping it up to date afterward, you define the set once and vmono builds and maintains every session from it.
+vmono manages **packages** and their **sessions**. A package is a set of git repos defined once, with a purpose that explains why they belong together. A session is one piece of work on a package: its own branch, and a directory holding a git worktree of every member, which a coding harness opens and sees all of them. Instead of piecing together a workspace for your agent by hand each time, and keeping it up to date afterward, you define the set once and vmono builds and maintains every session from it.
 
 - A package is defined once. Starting more work on the same set of repos is a new session, not a new package, so nothing about the members is set up twice.
 - Members are **git worktrees** of repos already on your machine: no copies, no re-clones, shared object storage.
@@ -13,7 +13,7 @@ vmono manages **packages** and their **sessions**. A package is a set of git rep
 - A harness opened at a session root works with no changes. Claude Code, OpenCode, Codex and Pi work out of the box; Claude Code and OpenCode also get generated config, and Codex and Pi get the skill.
 - A skill teaches the harness running inside a session to read the package, and to write back to it only what every future session needs. Claude Code gets it as a [plugin](/docs/claude-code-plugin) that also adds commands and live session state; other harnesses get the same skill on its own.
 - With the [tmux](/docs/tmux) or [herdr](/docs/herdr) integration, every session's harness runs in a tmux session or herdr workspace of its own, so several agents run side by side, and a key opens the TUI in a popup as a control panel for them, showing what each agent is doing.
-- Every active member works on a branch of its own repo. When the work is done, [push the session](/docs/pushing-a-session) and open pull requests, then [remove it](/docs/after-merging) once they merge. Nothing is pushed unless you ask.
+- Every active member works on the session's branch, in its own repo. When the work is done, [push the session](/docs/pushing-a-session) and open pull requests, then [remove it](/docs/after-merging) once they merge. Nothing is pushed unless you ask.
 - [Setup commands and hooks](/docs/setup-and-hooks) install dependencies in each new worktree and run your own commands when a session is created, pushed or removed, and a session can be [updated](/docs/updating-a-session) with what is new upstream.
 - Runs on macOS, Linux and Windows, without admin rights.
 
