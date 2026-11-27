@@ -38,6 +38,8 @@ To publish a branch again after its remote copy was deleted, run `git branch --u
 
 Nothing is forced, and a branch is never pushed to the branch it is meant to merge into. Members are independent: one that is blocked or refused does not stop the others.
 
+A session [built on a local branch](/docs/starting-a-session#what-a-new-branch-starts-from) that has commits you never pushed publishes those along with its own, and `vmono session review` counts them.
+
 ## Flags and exit code
 
 | Flag | Does |

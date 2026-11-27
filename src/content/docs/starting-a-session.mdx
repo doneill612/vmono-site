@@ -9,6 +9,7 @@ description: Give each piece of work a worktree of every member, the active ones
 vmono session new payments token-refresh                 # every active member on token-refresh
 vmono session new payments PLAT-412 --prefix fix         # on fix/PLAT-412
 vmono session new payments timeout --prefix fix --track  # continue fix/timeout, already on the remote
+vmono session new payments retry-ui --from origin/feat/retry  # build on a branch that has not merged
 ```
 
 ## Choosing the branch
@@ -37,7 +38,31 @@ A branch that is checked out elsewhere, your source repo included, cannot be in 
 
 `--from` is for work stacked on a branch that has not merged. `--from REF` is for every active member that has it, and `--from MEMBER=REF` is for one. The session remembers it, measures your commits against it, and [follows it on update](/docs/updating-a-session). A member that has nothing by that name starts from its base, with a warning. Naming the member makes that an error, and so does a name that no member has.
 
-It cannot be the session's own branch, and does not apply to a member that works on the branch from its remote, since that branch starts where it is.
+It cannot be the session's own branch, and does not apply to a member that works on the branch from its remote, since that branch starts where it is. Whether it means your local branch or the remote's depends on [how you name it](#what-a-new-branch-starts-from).
+
+## What a new branch starts from
+
+Your local branches and the ones on the remote are often at different commits. Every new session fetches first, but a fetch only updates what is known of the remote, such as `origin/main`. It never moves a local branch such as `main`. So what a new branch starts from depends on which of the two is named.
+
+| Named | The new branch starts at |
+| --- | --- |
+| Nothing, with the default base `origin/HEAD` | The remote's default branch, as just fetched |
+| Nothing, with a base such as `origin/develop` in the package | The remote's `develop`, as just fetched |
+| Nothing, with a base given as a plain name such as `develop` | **Your local** `develop`, which may be behind. It has to exist locally |
+| `origin/x`: the `origin/x` row in the TUI, or `--from origin/x` | The remote's `x`, as just fetched |
+| Your local `x`: the `x` row in the TUI, or `--from refs/heads/x` | Your local `x`, even when it is behind, with any commits you have not pushed |
+| `--from x`, a plain name on the command line | Whichever of local and remote `x` is further ahead, and your local one if each has commits the other lacks. When only one exists, that one |
+
+The first two rows are what you get by building on nothing, and are never affected by the state of your local branches.
+
+[`update`](/docs/updating-a-session) follows the same choice for as long as the session is built on that branch: pick `origin/x` and it takes in what is pushed to `x`; pick your local `x` and it takes in what you commit to it, and nothing that is only on the remote.
+
+Building on a local branch with commits that were never pushed puts them in the session's branch. Once the session has commits of its own, [pushing it](/docs/pushing-a-session) publishes those commits too, and `vmono session review` counts them.
+
+Two things leave a new branch further back than the table says, each with a warning:
+
+- A source that cannot be fetched, for lack of a network or credentials, is used as of its last fetch.
+- A source with no `origin/HEAD` gives the default base as whatever the source repo has checked out.
 
 ## Names that are refused
 
