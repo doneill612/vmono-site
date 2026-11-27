@@ -48,7 +48,7 @@ On the old branch itself, `git rebase --onto origin/main LAST_MERGED_COMMIT` doe
 
 ## Removing a session
 
-`vmono session rm pkg/session`, or `ctrl+d` in the TUI, removes the worktrees, the session directory, and the tmux session or herdr workspace it runs in. It is refused while a member has uncommitted or untracked files, or commits on no branch (a detached HEAD), unless forced.
+`vmono session rm pkg/session`, or `ctrl+d` in the TUI, removes the worktrees, the session directory, and the tmux session or herdr workspace it runs in, even when that is where you are (the TUI says so before you confirm). It is refused while a member has uncommitted or untracked files, or commits on no branch (a detached HEAD), unless forced.
 
 Commits on a branch never stop it, since the branch stays in the source repo:
 

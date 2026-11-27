@@ -12,7 +12,7 @@ vmono integration install tmux
 tmux source-file ~/.tmux.conf     # or wherever the install says it wired
 ```
 
-Every session gets a tmux session of its own, named `package/session`, with the harness as its only process. Opening a session creates it, or switches to it when it already exists, and never starts a second harness. Inside tmux the current client is switched; outside tmux vmono attaches. When the harness exits, tmux closes the session, as a direct launch returns you to your shell. Removing the vmono session (`session rm`, `delete`) closes its tmux session too, unless vmono itself is running in it, in which case it says so and leaves it open.
+Every session gets a tmux session of its own, named `package/session`, with the harness as its only process. Opening a session creates it, or switches to it when it already exists, and never starts a second harness. Inside tmux the current client is switched; outside tmux vmono attaches. When the harness exits, tmux closes the session, as a direct launch returns you to your shell. Removing the vmono session (`session rm`, `delete`) closes its tmux session too, with everything running in it. When that is the tmux session you are in, or the popup is open over it, your client is first switched to the one you were in before (or the next one; with no other, it detaches). It is left open only when the agent in it is the one removing the session.
 
 The install also adds `prefix + V`, which opens the vmono TUI in a popup. Launching a session from it switches the client to that session's tmux session and closes the popup, so the TUI works as a control panel for every running agent.
 
