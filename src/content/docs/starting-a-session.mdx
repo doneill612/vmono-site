@@ -10,6 +10,7 @@ vmono session new payments token-refresh                 # every active member o
 vmono session new payments PLAT-412 --prefix fix         # on fix/PLAT-412
 vmono session new payments timeout --prefix fix --track  # continue fix/timeout, already on the remote
 vmono session new payments retry-ui --from origin/feat/retry  # build on a branch that has not merged
+vmono session new payments try-v2 --from contracts=v2         # read the contracts reference at v2
 ```
 
 ## Choosing the branch
@@ -20,6 +21,7 @@ vmono session new payments retry-ui --from origin/feat/retry  # build on a branc
 | Put a prefix in front | `--prefix feat`: `feat/token-refresh` |
 | Work on that branch when it is already on a remote, such as a teammate's or an open pull request's | `--track`, or answer yes in the TUI |
 | Build on something other than the base | `--from REF` or `--from MEMBER=REF` |
+| Read a reference member at something other than the package's ref | `--from MEMBER=REF` |
 | Take up a local branch that already exists | `--reuse-branch` |
 
 `vmono new` takes the same flags along with `--session`, to start the first session as it defines the package.
@@ -39,6 +41,12 @@ A branch that is checked out elsewhere, your source repo included, cannot be in 
 `--from` is for work stacked on a branch that has not merged. `--from REF` is for every active member that has it, and `--from MEMBER=REF` is for one. The session remembers it, measures your commits against it, and [follows it on update](/docs/updating-a-session). A member that has nothing by that name starts from its base, with a warning. Naming the member makes that an error, and so does a name that no member has.
 
 It cannot be the session's own branch, and does not apply to a member that works on the branch from its remote, since that branch starts where it is. Whether it means your local branch or the remote's depends on [how you name it](#what-a-new-branch-starts-from).
+
+## Reading a reference at another ref
+
+A reference member gets no branch. It is checked out at the package's `ref`, or at what `--from MEMBER=REF` names for this session: a branch, named [the same ways](#what-a-new-branch-starts-from), a tag or a commit. Use it when your work depends on changes there that have not merged. `--from REF`, for every member, leaves reference members at the package's ref.
+
+The session remembers the ref, and `vmono sync --refs` moves a clean reference member to its newest commit. If the branch's remote copy is deleted, `sync --refs` returns the member to the package's ref once that has the branch's work, and leaves it where it is until then.
 
 ## What a new branch starts from
 

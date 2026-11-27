@@ -11,7 +11,7 @@ description: Packages, sessions, members and branches, and how they lay out on d
 | <Term kind="session">Session</Term> | One piece of work on a package: a directory with its own git repo and a worktree of every member, the active ones all on one branch. It is what a harness opens. A package has any number of them side by side. |
 | Member | A source repo included in a package. Every session has a worktree of every member. |
 | <Term kind="active">Active member</Term> | Checked out on the session's branch. The agent may edit it and commit to it, and you [push it](/docs/pushing-a-session). |
-| <Term kind="reference">Reference member</Term> | Checked out detached at a fixed ref under `_ref/`. Read-only context. |
+| <Term kind="reference">Reference member</Term> | Checked out detached under `_ref/`, at the package's `ref` or what a session names with [`--from MEMBER=REF`](/docs/starting-a-session#reading-a-reference-at-another-ref). Read-only context. |
 | <Term kind="base">Base</Term> | What a member's branch is built on and merges into: the `base` in the package manifest (default `origin/HEAD`), or what a session names with [`--from`](/docs/starting-a-session#building-on-unmerged-work). |
 | Branch | The one branch a session's active members are on: the session's name, after the [prefix](/docs/starting-a-session#choosing-the-branch) if there is one. |
 | Overview | What an agent learned by exploring the members, recorded by [`vmono package init`](/docs/package-init). Kept apart from the text you write. |
